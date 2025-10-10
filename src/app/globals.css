@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure navbar and dropdown appear above all content */
+.navbar-dropdown {
+  z-index: 2147483647 !important;
+}
+
+.navbar {
+  z-index: 2147483646 !important;
+}

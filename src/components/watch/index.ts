@@ -1,0 +1,6 @@
+export { default as VideoPlayer } from './VideoPlayer'
+export { default as ChannelInfo } from './ChannelInfo'
+export { default as VideoActions } from './VideoActions'
+export { default as VideoDescription } from './VideoDescription'
+export { default as CommentsSection } from './CommentsSection'
+export { default as RecommendedVideos } from './RecommendedVideos'
