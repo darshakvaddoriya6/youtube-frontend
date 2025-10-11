@@ -28,13 +28,20 @@ export default function WatchPage() {
     likeCount,
     toggleLike,
     handleSubscribeToggle,
-    addComment
+    addComment,
+    toggleCommentLike,
+    trackView
   } = useVideoData(videoId)
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return
-    await addComment(newComment)
-    setNewComment('')
+    
+    try {
+      await addComment(newComment)
+      setNewComment('')
+    } catch (error) {
+      console.error('Error adding comment:', error)
+    }
   }
 
   if (error || !video) {
@@ -54,6 +61,7 @@ export default function WatchPage() {
             videoFile={video.videoFile}
             thumbnail={video.thumbnail}
             title={video.title}
+            onTrackView={trackView}
           />
 
           {/* Channel Info and Actions */}
@@ -63,6 +71,7 @@ export default function WatchPage() {
               subscriberCount={subscriberCount}
               isSubscribed={isSubscribed}
               onSubscribeToggle={handleSubscribeToggle}
+              currentUser={currentUser}
             />
 
             <VideoActions
@@ -85,6 +94,7 @@ export default function WatchPage() {
             newComment={newComment}
             setNewComment={setNewComment}
             onAddComment={handleAddComment}
+            onToggleCommentLike={toggleCommentLike}
           />
         </div>
 

@@ -17,7 +17,6 @@ const Sidebar = () => {
   const libraryItems = [
     { href: '/history', icon: History, label: 'History' },
     { href: '/liked', icon: ThumbsUp, label: 'Liked Videos' },
-    { href: '/watch-later', icon: Clock, label: 'Watch Later' },
     { href: '/playlists', icon: FolderOpen, label: 'Playlists' },
   ]
 
@@ -31,7 +30,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`fixed left-0 top-16 h-full bg-white z-[2147483645] transform transition-all duration-300 ease-in-out ${
+      className={`fixed left-0 top-16 h-full bg-white  z-40 transform transition-all duration-300 ease-in-out ${
         isOpen ? 'w-60' : 'w-[70px]'
       }`}
     >

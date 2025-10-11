@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import api from '@/lib/api'
+import api, { publicApi } from '@/lib/api'
 
 interface VideoData {
   _id: string
@@ -48,6 +48,7 @@ export const useVideoData = (videoId: string | string[]) => {
   const [subscriberCount, setSubscriberCount] = useState<number | undefined>(undefined)
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
+  const [viewTracked, setViewTracked] = useState(false)
 
   // Helper functions for localStorage-based like status and count persistence
   const getLikeDataFromStorage = (videoId: string, userId: string) => {
@@ -113,7 +114,7 @@ export const useVideoData = (videoId: string | string[]) => {
 
   const fetchVideo = async () => {
     try {
-      const response = await api.get(`/videos/${videoId}`)
+      const response = await publicApi.get(`/videos/${videoId}`)
       const v = response.data?.statusCode || response.data
 
       let videoFileUrl = v?.videoFile
@@ -184,10 +185,7 @@ export const useVideoData = (videoId: string | string[]) => {
 
   const fetchRecommended = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
-      if (!token) return
-
-      const res = await api.get('/videos')
+      const res = await publicApi.get('/videos')
       const allVideos = res.data?.statusCode || res.data?.data || res.data || []
 
       if (Array.isArray(allVideos)) {
@@ -195,16 +193,43 @@ export const useVideoData = (videoId: string | string[]) => {
       }
     } catch (err: any) {
       // Handle error silently
+      console.log('Could not fetch recommended videos:', err.message)
+    }
+  }
+
+  const trackView = async () => {
+    if (viewTracked || !videoId) return
+
+    try {
+      const response = await publicApi.post(`/view/v/${videoId}`)
+      setViewTracked(true)
+
+      // Update the video view count in state based on response
+      const responseData = response.data?.data || response.data
+      if (responseData?.totalViews !== undefined) {
+        setVideo(prev => prev ? { ...prev, views: responseData.totalViews } : null)
+
+        if (responseData.isNewView) {
+        } else {
+        }
+      }
+    } catch (error) {
+      // Don't show error to user, just log it
+      console.log('Could not track view:', error)
     }
   }
 
   const fetchComments = async () => {
     try {
-      const response = await api.get(`/comments/${videoId}`)
+      const response = await publicApi.get(`/comments/${videoId}`)
+      
+      // Handle the corrected API response structure
       const commentsData = response.data?.data || response.data || []
+      
       setComments(Array.isArray(commentsData) ? commentsData : [])
-    } catch (error) {
+    } catch (error: any) {
       setComments([])
+      console.log('Could not fetch comments:', error.message)
     }
   }
 
@@ -215,24 +240,25 @@ export const useVideoData = (videoId: string | string[]) => {
       let subscribersCount = 0
       let isSubscribed = false
 
-      try {
-        const currentUserResponse = await api.get('/users/current-user')
-        const currentUserId = currentUserResponse.data?.data?._id || currentUserResponse.data?._id
-
-        if (currentUserId) {
-          const subscriptionsResponse = await api.get(`/subscriptions/u/${currentUserId}`)
+      // Only check subscription status if user is authenticated
+      const token = localStorage.getItem('accessToken')
+      if (token && currentUser) {
+        try {
+          const subscriptionsResponse = await api.get(`/subscriptions/u/${currentUser._id}`)
           const subscriptions = subscriptionsResponse.data?.statusCode || subscriptionsResponse.data?.data || []
           isSubscribed = Array.isArray(subscriptions) && subscriptions.some(sub => {
             const channel = sub.channel || sub
             return channel._id === video.Owner._id || channel.username === video.Owner.username
           })
+        } catch (error) {
+          // Handle error silently - user might not be authenticated
+          isSubscribed = false
         }
-      } catch (error) {
-        // Handle error silently
       }
 
+      // Fetch subscriber count using public API
       try {
-        const channelResponse = await api.get(`/users/c/${video.Owner.username}`)
+        const channelResponse = await publicApi.get(`/users/c/${video.Owner.username}`)
         const channelData = channelResponse.data?.data || channelResponse.data
         subscribersCount = channelData?.subscribersCount || channelData?.totalSubscribers || channelData?.subscribers || 0
       } catch (channelError) {
@@ -243,6 +269,7 @@ export const useVideoData = (videoId: string | string[]) => {
       setIsSubscribed(isSubscribed)
     } catch (error) {
       setSubscriberCount(0)
+      setIsSubscribed(false)
     }
   }
 
@@ -332,12 +359,75 @@ export const useVideoData = (videoId: string | string[]) => {
         content: content.trim()
       })
 
+      // Handle different response structures
       const newCommentData = response.data?.data || response.data
+
       if (newCommentData) {
-        setComments(prev => [newCommentData, ...prev])
+        // Ensure the comment has the correct structure
+        const formattedComment = {
+          _id: newCommentData._id,
+          content: newCommentData.content,
+          owner: {
+            _id: newCommentData.owner._id,
+            username: newCommentData.owner.username,
+            fullName: newCommentData.owner.fullName || newCommentData.owner.username,
+            avatar: newCommentData.owner.avatar
+          },
+          createdAt: newCommentData.createdAt || new Date().toISOString(),
+          likesCount: 0,
+          isLiked: false
+        }
+
+        // Add the new comment to the beginning of the list
+        setComments(prev => [formattedComment, ...prev])
       }
-    } catch (error) {
-      // Handle error silently
+    } catch (error: any) { 
+      alert('Failed to add comment. Please try again.')
+    }
+  }
+
+  const toggleCommentLike = async (commentId: string, commentOwnerId: string) => {
+    if (!currentUser) return
+
+    try {
+      // Optimistically update the comment in the UI
+      setComments(prev => prev.map(comment => {
+        if (comment._id === commentId) {
+          const newIsLiked = !comment.isLiked
+          const newLikesCount = newIsLiked 
+            ? (comment.likesCount || 0) + 1 
+            : Math.max((comment.likesCount || 0) - 1, 0)
+          
+          return {
+            ...comment,
+            isLiked: newIsLiked,
+            likesCount: newLikesCount
+          }
+        }
+        return comment
+      }))
+
+      // Make API call
+      await api.post(`/likes/toggle/c/${commentId}/${commentOwnerId}`)
+    } catch (error: any) {
+      // Revert optimistic update on error
+      setComments(prev => prev.map(comment => {
+        if (comment._id === commentId) {
+          const revertIsLiked = !comment.isLiked
+          const revertLikesCount = revertIsLiked 
+            ? (comment.likesCount || 0) + 1 
+            : Math.max((comment.likesCount || 0) - 1, 0)
+          
+          return {
+            ...comment,
+            isLiked: revertIsLiked,
+            likesCount: revertLikesCount
+          }
+        }
+        return comment
+      }))
+      
+      alert('Failed to toggle comment like. Please try again.')
     }
   }
 
@@ -388,6 +478,8 @@ export const useVideoData = (videoId: string | string[]) => {
     likeCount,
     toggleLike,
     handleSubscribeToggle,
-    addComment
+    addComment,
+    toggleCommentLike,
+    trackView
   }
 }

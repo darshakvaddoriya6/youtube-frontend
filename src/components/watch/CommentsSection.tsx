@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ThumbsUp, ThumbsDown } from 'lucide-react'
+import { ThumbsUp } from 'lucide-react'
 
 interface Comment {
   _id: string
@@ -22,7 +22,8 @@ interface CommentsSectionProps {
   currentUser: any
   newComment: string
   setNewComment: (comment: string) => void
-  onAddComment: () => void
+  onAddComment: () => Promise<void>
+  onToggleCommentLike: (commentId: string, commentOwnerId: string) => Promise<void>
 }
 
 export default function CommentsSection({
@@ -30,12 +31,25 @@ export default function CommentsSection({
   currentUser,
   newComment,
   setNewComment,
-  onAddComment
+  onAddComment,
+  onToggleCommentLike
 }: CommentsSectionProps) {
   const [visibleComments, setVisibleComments] = useState(5)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const loadMoreComments = () => {
     setVisibleComments(prev => prev + 10)
+  }
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || isSubmitting) return
+
+    setIsSubmitting(true)
+    try {
+      await onAddComment()
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -50,7 +64,7 @@ export default function CommentsSection({
       </div>
 
       {/* Add Comment */}
-      {currentUser && (
+      {currentUser ? (
         <div className="flex space-x-3 mb-6">
           <img
             src={currentUser.avatar || '/default-avatar.png'}
@@ -82,17 +96,31 @@ export default function CommentsSection({
                   Cancel
                 </button>
                 <button
-                  onClick={onAddComment}
-                  disabled={!newComment.trim()}
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim() || isSubmitting}
                   className="px-4 py-2 bg-blue-600 text-white text-sm rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Comment
+                  {isSubmitting ? 'Posting...' : 'Comment'}
                 </button>
               </div>
             )}
           </div>
         </div>
+      ) : (
+        <div className="flex items-center justify-center py-6 mb-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+          <div className="text-center">
+            <p className="text-gray-600 mb-2">Join the conversation</p>
+            <a
+              href="/login"
+              className="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm rounded-full hover:bg-blue-700 transition-colors"
+            >
+              Sign in to comment
+            </a>
+          </div>
+        </div>
       )}
+
+
 
       {/* Comments List */}
       {comments.length === 0 ? (
@@ -122,16 +150,28 @@ export default function CommentsSection({
                   {comment.content}
                 </p>
                 <div className="flex items-center space-x-4">
-                  <button className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 transition-colors">
-                    <ThumbsUp className="h-4 w-4" />
-                    <span className="text-xs">{comment.likesCount || 0}</span>
-                  </button>
-                  <button className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 transition-colors">
-                    <ThumbsDown className="h-4 w-4" />
-                  </button>
-                  <button className="text-xs text-gray-600 hover:text-gray-800 transition-colors">
-                    Reply
-                  </button>
+                  {currentUser ? (
+                    <button
+                      onClick={() => onToggleCommentLike(comment._id, comment.owner._id)}
+                      className={`flex items-center space-x-1 transition-colors ${comment.isLiked
+                        ? 'text-black hover:text-black'
+                        : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                    >
+                      <ThumbsUp className={`h-4 w-4 ${comment.isLiked ? 'fill-black' : ''}`} />
+                      <span className="text-xs">{comment.likesCount || 0}</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center space-x-1 text-gray-600">
+                      <ThumbsUp className="h-4 w-4" />
+                      <span className="text-xs">{comment.likesCount || 0}</span>
+                    </div>
+                  )}
+                  {currentUser && (
+                    <button className="text-xs text-gray-600 hover:text-gray-800 transition-colors">
+                      Reply
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

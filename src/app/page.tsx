@@ -3,22 +3,44 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Video } from '@/types'
-import api from '@/lib/api'
+import api, { publicApi } from '@/lib/api'
 
 export default function HomePage() {
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [, setLastUpdated] = useState<Date | null>(null)
 
   useEffect(() => {
     fetchVideos()
+
+    // Refresh videos when user returns to the page (e.g., from watching a video)
+    const handleFocus = () => {
+      fetchVideos()
+    }
+
+    window.addEventListener('focus', handleFocus)
+
+    // Also refresh when the page becomes visible again
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchVideos()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   const fetchVideos = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await api.get('/videos')
+      const response = await publicApi.get('/videos')
 
       let videosData = []
       if (response.data && response.data.statusCode && Array.isArray(response.data.statusCode)) {
@@ -44,7 +66,7 @@ export default function HomePage() {
         videoFile: video.videoFile,
         thumbnail: video.thumbnail,
         duration: video.duration,
-        views: video.views || 0,
+        views: video.views || video.view || 0, // Handle both field names
         isPublished: video.isPublished,
         owner: {
           _id: video.Owner?._id || video.owner?._id,
@@ -57,6 +79,7 @@ export default function HomePage() {
       }))
 
       setVideos(mappedVideos)
+      setLastUpdated(new Date())
     } catch (error) {
       setError('Failed to load videos. Please check if the backend server is running.')
       setVideos([])
@@ -65,13 +88,18 @@ export default function HomePage() {
     }
   }
 
-  // ✅ Add to watch history when a user clicks a video
+  // ✅ Add to watch history when a user clicks a video (only if authenticated)
   const handleVideoClick = async (videoId: string) => {
     try {
-      await api.post('/users/history/add', { videoId })
-    } catch (err: any) {
-      if (err.response?.status === 401) {
+      // Check if user is authenticated before trying to add to history
+      const token = localStorage.getItem('accessToken')
+      if (token) {
+        await api.post('/users/history/add', { videoId })
       }
+      // If no token, just continue to video without adding to history
+    } catch (err: any) {
+      // Silently handle errors - don't redirect to login for video watching
+      console.log('Could not add to watch history:', err.message)
     }
   }
 
@@ -125,30 +153,32 @@ export default function HomePage() {
   return (
     <div className="p-6 ml-16">
       <div className="max-w-7xl mx-auto">
+
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {videos.map((video) => (
-            <Link
-              key={video._id}
-              href={`/watch/${video._id}`}
-              className="group cursor-pointer"
-              onClick={() => handleVideoClick(video._id)} // ✅ Add here
-            >
-              <div className="relative">
-                <img
-                  src={video.thumbnail}
-                  alt={video.title}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                  {formatDuration(video.duration)}
+            <div key={video._id} className="group cursor-pointer">
+              <Link
+                href={`/watch/${video._id}`}
+                onClick={() => handleVideoClick(video._id)}
+                className="block"
+              >
+                <div className="relative">
+                  <img
+                    src={video.thumbnail}
+                    alt={video.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                    {formatDuration(video.duration)}
+                  </div>
                 </div>
-              </div>
+              </Link>
 
               <div className="mt-3">
                 <div className="flex items-start space-x-3">
                   <Link
                     href={`/channel/${video.owner.username}`}
-                    onClick={(e) => e.stopPropagation()}
                     className="flex-shrink-0 hover:opacity-80 transition-opacity"
                   >
                     <img
@@ -158,25 +188,30 @@ export default function HomePage() {
                     />
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-red-600">
-                      {video.title}
-                    </h3>
+                    <Link
+                      href={`/watch/${video._id}`}
+                      onClick={() => handleVideoClick(video._id)}
+                      className="block"
+                    >
+                      <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-red-600">
+                        {video.title}
+                      </h3>
+                    </Link>
                     <Link
                       href={`/channel/${video.owner.username}`}
-                      onClick={(e) => e.stopPropagation()}
                       className="text-sm text-gray-600 mt-1 hover:text-gray-900 transition-colors"
                     >
                       {video.owner.fullName}
                     </Link>
                     <div className="flex items-center text-sm text-gray-600 mt-1">
-                      <span>{formatViews(video.views)}</span>
+                      <span className="font-medium">{formatViews(video.views)}</span>
                       <span className="mx-1">•</span>
                       <span>{new Date(video.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 
