@@ -29,7 +29,9 @@ export default function WatchPage() {
     toggleLike,
     handleSubscribeToggle,
     addComment,
+    addReply,
     toggleCommentLike,
+    deleteComment,
     trackView
   } = useVideoData(videoId)
 
@@ -41,6 +43,22 @@ export default function WatchPage() {
       setNewComment('')
     } catch (error) {
       console.error('Error adding comment:', error)
+    }
+  }
+
+  const handleAddReply = async (commentId: string, content: string) => {
+    try {
+      await addReply(commentId, content)
+    } catch (error) {
+      console.error('Error adding reply:', error)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await deleteComment(commentId)
+    } catch (error) {
+      console.error('Error deleting comment:', error)
     }
   }
 
@@ -95,6 +113,8 @@ export default function WatchPage() {
             setNewComment={setNewComment}
             onAddComment={handleAddComment}
             onToggleCommentLike={toggleCommentLike}
+            onAddReply={handleAddReply}
+            onDeleteComment={handleDeleteComment}
           />
         </div>
 

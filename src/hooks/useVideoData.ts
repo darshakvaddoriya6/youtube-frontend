@@ -36,6 +36,8 @@ interface Comment {
   createdAt: string
   likesCount?: number
   isLiked?: boolean
+  replies?: Comment[]
+  parentComment?: string
 }
 
 export const useVideoData = (videoId: string | string[]) => {
@@ -390,44 +392,139 @@ export const useVideoData = (videoId: string | string[]) => {
     if (!currentUser) return
 
     try {
-      // Optimistically update the comment in the UI
-      setComments(prev => prev.map(comment => {
-        if (comment._id === commentId) {
-          const newIsLiked = !comment.isLiked
-          const newLikesCount = newIsLiked 
-            ? (comment.likesCount || 0) + 1 
-            : Math.max((comment.likesCount || 0) - 1, 0)
-          
-          return {
-            ...comment,
-            isLiked: newIsLiked,
-            likesCount: newLikesCount
+      // Helper function to update comment likes recursively
+      const updateCommentLikes = (comments: Comment[]): Comment[] => {
+        return comments.map(comment => {
+          if (comment._id === commentId) {
+            const newIsLiked = !comment.isLiked
+            const newLikesCount = newIsLiked 
+              ? (comment.likesCount || 0) + 1 
+              : Math.max((comment.likesCount || 0) - 1, 0)
+            
+            return {
+              ...comment,
+              isLiked: newIsLiked,
+              likesCount: newLikesCount
+            }
           }
-        }
-        return comment
-      }))
+          
+          // Check replies
+          if (comment.replies && comment.replies.length > 0) {
+            return {
+              ...comment,
+              replies: updateCommentLikes(comment.replies)
+            }
+          }
+          
+          return comment
+        })
+      }
+
+      // Optimistically update the comment in the UI
+      setComments(prev => updateCommentLikes(prev))
 
       // Make API call
       await api.post(`/likes/toggle/c/${commentId}/${commentOwnerId}`)
     } catch (error: any) {
       // Revert optimistic update on error
-      setComments(prev => prev.map(comment => {
-        if (comment._id === commentId) {
-          const revertIsLiked = !comment.isLiked
-          const revertLikesCount = revertIsLiked 
-            ? (comment.likesCount || 0) + 1 
-            : Math.max((comment.likesCount || 0) - 1, 0)
-          
-          return {
-            ...comment,
-            isLiked: revertIsLiked,
-            likesCount: revertLikesCount
+      const revertCommentLikes = (comments: Comment[]): Comment[] => {
+        return comments.map(comment => {
+          if (comment._id === commentId) {
+            const revertIsLiked = !comment.isLiked
+            const revertLikesCount = revertIsLiked 
+              ? (comment.likesCount || 0) + 1 
+              : Math.max((comment.likesCount || 0) - 1, 0)
+            
+            return {
+              ...comment,
+              isLiked: revertIsLiked,
+              likesCount: revertLikesCount
+            }
           }
-        }
-        return comment
-      }))
-      
+          
+          // Check replies
+          if (comment.replies && comment.replies.length > 0) {
+            return {
+              ...comment,
+              replies: revertCommentLikes(comment.replies)
+            }
+          }
+          
+          return comment
+        })
+      }
+
+      setComments(prev => revertCommentLikes(prev))
       alert('Failed to toggle comment like. Please try again.')
+    }
+  }
+
+  const addReply = async (commentId: string, content: string) => {
+    if (!content.trim() || !currentUser) return
+
+    try {
+      const response = await api.post(`/comments/c/${commentId}/reply`, {
+        content: content.trim()
+      })
+
+      // Handle different response structures
+      const newReplyData = response.data?.data || response.data
+
+      if (newReplyData) {
+        // Ensure the reply has the correct structure
+        const formattedReply = {
+          _id: newReplyData._id,
+          content: newReplyData.content,
+          owner: {
+            _id: newReplyData.owner._id,
+            username: newReplyData.owner.username,
+            fullName: newReplyData.owner.fullName || newReplyData.owner.username,
+            avatar: newReplyData.owner.avatar
+          },
+          createdAt: newReplyData.createdAt || new Date().toISOString(),
+          likesCount: 0,
+          isLiked: false,
+          parentComment: commentId
+        }
+
+        // Add the new reply to the parent comment
+        setComments(prev => prev.map(comment => {
+          if (comment._id === commentId) {
+            return {
+              ...comment,
+              replies: [...(comment.replies || []), formattedReply]
+            }
+          }
+          return comment
+        }))
+      }
+    } catch (error: any) { 
+      alert('Failed to add reply. Please try again.')
+    }
+  }
+
+  const deleteComment = async (commentId: string) => {
+    if (!currentUser) return
+
+    try {
+      await api.delete(`/comments/c/${commentId}`)
+
+      // Remove the comment from the UI
+      setComments(prev => {
+        // Helper function to remove comment recursively
+        const removeComment = (comments: Comment[]): Comment[] => {
+          return comments
+            .filter(comment => comment._id !== commentId)
+            .map(comment => ({
+              ...comment,
+              replies: comment.replies ? removeComment(comment.replies) : []
+            }))
+        }
+
+        return removeComment(prev)
+      })
+    } catch (error: any) {
+      alert('Failed to delete comment. Please try again.')
     }
   }
 
@@ -479,7 +576,9 @@ export const useVideoData = (videoId: string | string[]) => {
     toggleLike,
     handleSubscribeToggle,
     addComment,
+    addReply,
     toggleCommentLike,
+    deleteComment,
     trackView
   }
 }

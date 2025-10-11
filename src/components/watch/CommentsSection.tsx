@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ThumbsUp } from 'lucide-react'
+import { ThumbsUp, Trash2 } from 'lucide-react'
 
 interface Comment {
   _id: string
@@ -15,6 +15,8 @@ interface Comment {
   createdAt: string
   likesCount?: number
   isLiked?: boolean
+  replies?: Comment[]
+  parentComment?: string
 }
 
 interface CommentsSectionProps {
@@ -24,6 +26,8 @@ interface CommentsSectionProps {
   setNewComment: (comment: string) => void
   onAddComment: () => Promise<void>
   onToggleCommentLike: (commentId: string, commentOwnerId: string) => Promise<void>
+  onAddReply: (commentId: string, content: string) => Promise<void>
+  onDeleteComment: (commentId: string) => Promise<void>
 }
 
 export default function CommentsSection({
@@ -32,10 +36,23 @@ export default function CommentsSection({
   newComment,
   setNewComment,
   onAddComment,
-  onToggleCommentLike
+  onToggleCommentLike,
+  onAddReply,
+  onDeleteComment
 }: CommentsSectionProps) {
   const [visibleComments, setVisibleComments] = useState(5)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyContent, setReplyContent] = useState('')
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false)
+  const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: number }>({})
+
+  const showMoreReplies = (commentId: string) => {
+    setVisibleReplies(prev => ({
+      ...prev,
+      [commentId]: (prev[commentId] || 2) + 5
+    }))
+  }
 
   const loadMoreComments = () => {
     setVisibleComments(prev => prev + 10)
@@ -50,6 +67,24 @@ export default function CommentsSection({
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleSubmitReply = async (commentId: string) => {
+    if (!replyContent.trim() || isSubmittingReply) return
+
+    setIsSubmittingReply(true)
+    try {
+      await onAddReply(commentId, replyContent)
+      setReplyContent('')
+      setReplyingTo(null)
+    } finally {
+      setIsSubmittingReply(false)
+    }
+  }
+
+  const handleCancelReply = () => {
+    setReplyingTo(null)
+    setReplyContent('')
   }
 
   return (
@@ -131,50 +166,22 @@ export default function CommentsSection({
       ) : (
         <div className="space-y-4">
           {comments.slice(0, visibleComments).map((comment) => (
-            <div key={comment._id} className="flex space-x-3">
-              <img
-                src={comment.owner.avatar || '/default-avatar.png'}
-                alt={comment.owner.fullName}
-                className="w-10 h-10 rounded-full flex-shrink-0"
-              />
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-medium text-sm">
-                    {comment.owner.fullName}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-800 mb-2">
-                  {comment.content}
-                </p>
-                <div className="flex items-center space-x-4">
-                  {currentUser ? (
-                    <button
-                      onClick={() => onToggleCommentLike(comment._id, comment.owner._id)}
-                      className={`flex items-center space-x-1 transition-colors ${comment.isLiked
-                        ? 'text-black hover:text-black'
-                        : 'text-gray-600 hover:text-gray-800'
-                        }`}
-                    >
-                      <ThumbsUp className={`h-4 w-4 ${comment.isLiked ? 'fill-black' : ''}`} />
-                      <span className="text-xs">{comment.likesCount || 0}</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center space-x-1 text-gray-600">
-                      <ThumbsUp className="h-4 w-4" />
-                      <span className="text-xs">{comment.likesCount || 0}</span>
-                    </div>
-                  )}
-                  {currentUser && (
-                    <button className="text-xs text-gray-600 hover:text-gray-800 transition-colors">
-                      Reply
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <CommentItem
+              key={comment._id}
+              comment={comment}
+              currentUser={currentUser}
+              onToggleCommentLike={onToggleCommentLike}
+              onDeleteComment={onDeleteComment}
+              replyingTo={replyingTo}
+              setReplyingTo={setReplyingTo}
+              replyContent={replyContent}
+              setReplyContent={setReplyContent}
+              onSubmitReply={handleSubmitReply}
+              onCancelReply={handleCancelReply}
+              isSubmittingReply={isSubmittingReply}
+              visibleReplies={visibleReplies[comment._id] || 2}
+              onShowMoreReplies={() => showMoreReplies(comment._id)}
+            />
           ))}
 
           {/* Show More Comments Button */}
@@ -190,6 +197,187 @@ export default function CommentsSection({
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+interface CommentItemProps {
+  comment: Comment
+  currentUser: any
+  onToggleCommentLike: (commentId: string, commentOwnerId: string) => Promise<void>
+  onDeleteComment: (commentId: string) => Promise<void>
+  replyingTo: string | null
+  setReplyingTo: (commentId: string | null) => void
+  replyContent: string
+  setReplyContent: (content: string) => void
+  onSubmitReply: (commentId: string) => Promise<void>
+  onCancelReply: () => void
+  isSubmittingReply: boolean
+  isReply?: boolean
+  visibleReplies?: number
+  onShowMoreReplies?: () => void
+}
+
+function CommentItem({
+  comment,
+  currentUser,
+  onToggleCommentLike,
+  onDeleteComment,
+  replyingTo,
+  setReplyingTo,
+  replyContent,
+  setReplyContent,
+  onSubmitReply,
+  onCancelReply,
+  isSubmittingReply,
+  isReply = false,
+  visibleReplies = 2,
+  onShowMoreReplies
+}: CommentItemProps) {
+  const isReplying = replyingTo === comment._id
+  const [isDeleting, setIsDeleting] = useState(false)
+  const isOwner = currentUser && currentUser._id === comment.owner._id
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) {
+      return
+    }
+    
+    setIsDeleting(true)
+    try {
+      await onDeleteComment(comment._id)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  return (
+    <div className={`flex space-x-3 ${isReply ? 'ml-12 mt-3' : ''}`}>
+      <img
+        src={comment.owner.avatar || '/default-avatar.png'}
+        alt={comment.owner.fullName}
+        className="w-10 h-10 rounded-full flex-shrink-0"
+      />
+      <div className="flex-1">
+        <div className="flex items-center space-x-2 mb-1">
+          <span className="font-medium text-sm">
+            {comment.owner.fullName}
+          </span>
+          <span className="text-xs text-gray-500">
+            {new Date(comment.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+        <p className="text-sm text-gray-800 mb-2">
+          {comment.content}
+        </p>
+        <div className="flex items-center space-x-4">
+          {currentUser ? (
+            <button
+              onClick={() => onToggleCommentLike(comment._id, comment.owner._id)}
+              className={`flex items-center space-x-1 transition-colors ${comment.isLiked
+                ? 'text-black hover:text-black'
+                : 'text-gray-600 hover:text-gray-800'
+                }`}
+            >
+              <ThumbsUp className={`h-4 w-4 ${comment.isLiked ? 'fill-black' : ''}`} />
+              <span className="text-xs">{comment.likesCount || 0}</span>
+            </button>
+          ) : (
+            <div className="flex items-center space-x-1 text-gray-600">
+              <ThumbsUp className="h-4 w-4" />
+              <span className="text-xs">{comment.likesCount || 0}</span>
+            </div>
+          )}
+          {currentUser && !isReply && (
+            <button
+              onClick={() => setReplyingTo(isReplying ? null : comment._id)}
+              className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              {isReplying ? 'Cancel' : 'Reply'}
+            </button>
+          )}
+          {isOwner && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex items-center space-x-1 text-xs text-red-600 hover:text-red-800 transition-colors disabled:opacity-50"
+            >
+              <Trash2 className="h-3 w-3" />
+              <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Reply Form */}
+        {isReplying && currentUser && (
+          <div className="mt-3 flex space-x-3">
+            <img
+              src={currentUser.avatar || '/default-avatar.png'}
+              alt={currentUser.fullName}
+              className="w-8 h-8 rounded-full flex-shrink-0"
+            />
+            <div className="flex-1">
+              <textarea
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder={`Reply to ${comment.owner.fullName}...`}
+                className="w-full p-2 border border-gray-200 rounded-lg focus:border-blue-500 outline-none resize-none text-sm"
+                rows={2}
+              />
+              <div className="flex justify-end space-x-2 mt-2">
+                <button
+                  onClick={onCancelReply}
+                  className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => onSubmitReply(comment._id)}
+                  disabled={!replyContent.trim() || isSubmittingReply}
+                  className="px-3 py-1 bg-red-600 text-white text-xs rounded-full hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSubmittingReply ? 'Replying...' : 'Reply'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Replies */}
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-4 space-y-3">
+            {comment.replies.slice(0, visibleReplies).map((reply) => (
+              <CommentItem
+                key={reply._id}
+                comment={reply}
+                currentUser={currentUser}
+                onToggleCommentLike={onToggleCommentLike}
+                onDeleteComment={onDeleteComment}
+                replyingTo={replyingTo}
+                setReplyingTo={setReplyingTo}
+                replyContent={replyContent}
+                setReplyContent={setReplyContent}
+                onSubmitReply={onSubmitReply}
+                onCancelReply={onCancelReply}
+                isSubmittingReply={isSubmittingReply}
+                isReply={true}
+              />
+            ))}
+
+            {/* Show More Replies Button */}
+            {comment.replies.length > visibleReplies && onShowMoreReplies && (
+              <div className="ml-12 mt-2">
+                <button
+                  onClick={onShowMoreReplies}
+                  className="text-xs text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                >
+                  Show {Math.min(5, comment.replies.length - visibleReplies)} more replies
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
