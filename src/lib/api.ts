@@ -90,4 +90,11 @@ publicApi.interceptors.response.use(
   }
 )
 
+// Watch Later API functions
+export const watchLaterApi = {
+  getWatchLater: () => api.get('/users/watch-later'),
+  toggleWatchLater: (videoId: string) => api.post('/users/watch-later/toggle', { videoId }),
+  clearWatchLater: () => api.delete('/users/watch-later/clear'),
+}
+
 export default api

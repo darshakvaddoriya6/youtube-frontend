@@ -63,7 +63,7 @@ export default function RecommendedVideos({ videos }: RecommendedVideosProps) {
                 <img
                   src={video.thumbnail}
                   alt={video.title}
-                  className="w-32 h-full object-cover rounded-lg"
+                  className="w-44 h-full object-cover rounded-lg"
                 />
                 <div className="absolute bottom-1 right-1 bg-black bg-opacity-90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
                   {video.duration ? formatDuration(video.duration) : '0:00'}

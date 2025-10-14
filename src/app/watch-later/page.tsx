@@ -2,18 +2,218 @@
 
 'use client'
 import UnauthenticatedPrompt from '@/components/UnauthenticatedPrompt'
-
+import { watchLaterApi } from '@/lib/api'
 import { useState, useEffect } from 'react'
-import { Clock, MoreVertical, Play } from 'lucide-react'
+import { Clock, MoreVertical, Trash2, X } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { formatDuration, formatViews } from '@/lib/utils'
+
+interface WatchLaterVideo {
+  _id: string
+  title: string
+  thumbnail: string
+  duration: number
+  views: number
+  createdAt: string
+  owner: {
+    username: string
+    avatar: string
+    fullName: string
+  }
+}
 
 const WatchLater = () => {
+  const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-
+  const [videos, setVideos] = useState<WatchLaterVideo[]>([])
+  const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [clearingAll, setClearingAll] = useState(false)
+  const [activeMenu, setActiveMenu] = useState<string | null>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
     setIsAuthenticated(!!token)
+
+    if (token) {
+      fetchWatchLaterVideos()
+    }
   }, [])
+
+  const fetchWatchLaterVideos = async () => {
+    try {
+      setLoading(true)
+
+      // First, try to get data from backend
+      let backendVideos: WatchLaterVideo[] = []
+      try {
+        const response = await watchLaterApi.getWatchLater()
+        console.log('Backend API response:', response.data)
+        backendVideos = response.data.data.watchLater || []
+        console.log('Backend videos:', backendVideos)
+      } catch (error) {
+        console.error('Backend API error:', error)
+      }
+
+      // Get localStorage data to find videos that might not be synced yet
+      const token = localStorage.getItem('accessToken')
+      if (token) {
+        try {
+          // Get current user to build localStorage key
+          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/users/current-user`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json()
+            const currentUser = userData.data
+
+            // Get localStorage watch-later data
+            const watchLaterStorage = JSON.parse(localStorage.getItem('watchLaterVideos') || '{}')
+            const userKey = currentUser._id || currentUser.username
+            console.log('localStorage watchLaterVideos:', watchLaterStorage)
+            console.log('Current user key:', userKey)
+
+            // Find video IDs that are saved locally but not in backend response
+            const localVideoIds: string[] = []
+            Object.keys(watchLaterStorage).forEach(key => {
+              if (key.startsWith(`${userKey}_`) && watchLaterStorage[key]) {
+                const videoId = key.replace(`${userKey}_`, '')
+                const isInBackend = backendVideos.some(v => v._id === videoId)
+                console.log(`Video ${videoId}: localStorage=true, backend=${isInBackend}`)
+                if (!isInBackend) {
+                  localVideoIds.push(videoId)
+                }
+              }
+            })
+            console.log('Local video IDs not in backend:', localVideoIds)
+
+
+            // Fetch video details for locally saved videos that aren't in backend
+            if (localVideoIds.length > 0) {
+              const localVideos = await Promise.all(
+                localVideoIds.map(async (videoId) => {
+                  try {
+                    const videoResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/videos/${videoId}`)
+                    if (videoResponse.ok) {
+                      const videoData = await videoResponse.json()
+                      const video = videoData.statusCode || videoData
+                      return {
+                        _id: video._id,
+                        title: video.title,
+                        thumbnail: video.thumbnail,
+                        duration: video.duration,
+                        views: video.view || video.views || 0,
+                        createdAt: video.createdAt,
+                        owner: {
+                          username: video.owner?.username || video.Owner?.username,
+                          avatar: video.owner?.avatar || video.Owner?.avatar,
+                          fullName: video.owner?.fullName || video.Owner?.fullName
+                        }
+                      }
+                    }
+                    return null
+                  } catch (error) {
+                    return null
+                  }
+                })
+              )
+
+              // Filter out null values and add to backend videos
+              const validLocalVideos = localVideos.filter(v => v !== null) as WatchLaterVideo[]
+              backendVideos = [...backendVideos, ...validLocalVideos]
+            }
+          }
+        } catch (error) {
+        }
+      }
+
+      setVideos(backendVideos)
+    } catch (error) {
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRemoveVideo = async (videoId: string) => {
+    if (!confirm("Remove from Watch Later?")) return
+
+    try {
+      setDeletingId(videoId)
+      await watchLaterApi.toggleWatchLater(videoId)
+
+      // Remove from localStorage as well
+      const token = localStorage.getItem('accessToken')
+      if (token) {
+        try {
+          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/users/current-user`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json()
+            const currentUser = userData.data
+            const userKey = currentUser._id || currentUser.username
+
+            const watchLaterStorage = JSON.parse(localStorage.getItem('watchLaterVideos') || '{}')
+            delete watchLaterStorage[`${userKey}_${videoId}`]
+            localStorage.setItem('watchLaterVideos', JSON.stringify(watchLaterStorage))
+          }
+        } catch (error) {
+          console.error('Failed to update localStorage:', error)
+        }
+      }
+
+      setVideos(videos.filter(video => video._id !== videoId))
+      setActiveMenu(null)
+    } catch (error) {
+      console.error('Failed to remove video from watch later:', error)
+      alert("Failed to remove video from Watch Later")
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const handleClearAll = async () => {
+    if (!confirm("Clear all Watch Later videos? This action cannot be undone.")) return
+
+    try {
+      setClearingAll(true)
+      // Remove all videos one by one
+      await Promise.all(videos.map(video => watchLaterApi.toggleWatchLater(video._id)))
+      setVideos([])
+      setActiveMenu(null)
+    } catch (error) {
+      alert("Failed to clear Watch Later")
+    } finally {
+      setClearingAll(false)
+    }
+  }
+
+  const handleVideoClick = (video: WatchLaterVideo) => {
+    router.push(`/watch/${video._id}`)
+  }
+
+  const toggleMenu = (id: string) => {
+    setActiveMenu(activeMenu === id ? null : id)
+  }
+
+
+
+
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1) return '1 day ago'
+    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+    return `${Math.floor(diffDays / 30)} months ago`
+  }
 
   // Show login prompt if not authenticated
   if (!isAuthenticated) {
@@ -32,92 +232,168 @@ const WatchLater = () => {
       />
     )
   }
-  // Mock data for watch later videos - in a real app this would come from an API
-  const watchLaterVideos = [
-    {
-      id: 1,
-      title: 'Advanced TypeScript Patterns',
-      channel: 'TypeScript Pro',
-      thumbnail: '/api/placeholder/160/90',
-      duration: '1:05:30',
-      addedAt: '2 days ago',
-      views: '750K views',
-      description: 'Deep dive into advanced TypeScript patterns and best practices...'
-    },
-    {
-      id: 2,
-      title: 'Machine Learning Basics',
-      channel: 'AI Explained',
-      thumbnail: '/api/placeholder/160/90',
-      duration: '2:15:45',
-      addedAt: '5 days ago',
-      views: '1.8M views',
-      description: 'Introduction to machine learning concepts and algorithms...'
-    },
-    {
-      id: 3,
-      title: 'CSS Grid vs Flexbox',
-      channel: 'CSS Masters',
-      thumbnail: '/api/placeholder/160/90',
-      duration: '18:22',
-      addedAt: '1 week ago',
-      views: '320K views',
-      description: 'When to use CSS Grid vs Flexbox for modern layouts...'
-    }
-  ]
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
+          <div className="flex items-center mb-8">
+            <Clock className="h-8 w-8 mr-3 text-gray-900" />
+            <h1 className="text-3xl font-semibold text-gray-900">Watch Later</h1>
+          </div>
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-        <div className="flex items-center mb-6">
-          <Clock className="h-6 w-6 mr-3 text-blue-500" />
-          <h1 className="text-2xl font-bold">Watch Later</h1>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center">
+            <Clock className="h-8 w-8 mr-3 text-gray-900" />
+            <h1 className="text-3xl font-semibold text-gray-900">Watch Later</h1>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          {watchLaterVideos.map((video) => (
-            <div key={video.id} className="flex items-start space-x-4 p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="relative">
-                <img
-                  src={video.thumbnail}
-                  alt={video.title}
-                  className="w-full h-60 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Play className="h-6 w-6 text-white bg-black bg-opacity-70 rounded-full p-1" />
+        {/* Video List */}
+        {videos.length > 0 ? (
+          <div className="space-y-4 lg:space-y-6">
+            {videos.map((video) => (
+              <div key={video._id}>
+                {/* Mobile Layout */}
+                <div className="lg:hidden">
+                  <div
+                    className="relative cursor-pointer mb-3"
+                    onClick={() => handleVideoClick(video)}
+                  >
+                    <img
+                      src={video.thumbnail}
+                      alt={video.title}
+                      className="w-full h-60 object-cover rounded-lg"
+                    />
+                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                      {formatDuration(video.duration)}
+                    </div>
+                  </div>
+
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3
+                        className="font-medium text-sm text-gray-900 mb-2 cursor-pointer hover:text-gray-700 line-clamp-2"
+                        onClick={() => handleVideoClick(video)}
+                      >
+                        {video.title}
+                      </h3>
+                      {video.owner?.username ? (
+                        <Link
+                          href={`/channel/${video.owner.username}`}
+                          className="text-xs text-gray-600 mb-1 hover:text-red-600 block w-fit"
+                        >
+                          {video.owner?.fullName || video.owner?.username || "Unknown Channel"}
+                        </Link>
+                      ) : (
+                        <p className="text-xs text-gray-600 mb-1">
+                          {video.owner?.fullName || video.owner?.username || "Unknown Channel"}
+                        </p>
+                      )}
+                      <div className="flex items-center text-xs text-gray-600">
+                        <span>{formatViews(video.views)}</span>
+                        <span className="mx-1">•</span>
+                        <span>Added {formatDate(video.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className="relative flex-shrink-0 flex ml-2">
+                      <button
+                        onClick={() => handleRemoveVideo(video._id)}
+                        disabled={deletingId === video._id}
+                        className="p-1 rounded-full hover:bg-red-100 mr-1"
+                      >
+                        <X className="h-4 w-4 text-red-600" />
+                      </button>
+                      <button
+                        onClick={() => toggleMenu(video._id)}
+                        className="p-1 rounded-full hover:bg-gray-100"
+                      >
+                        <MoreVertical className="h-4 w-4 text-gray-700" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <span className="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded">
-                  {video.duration}
-                </span>
-              </div>
 
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1 cursor-pointer hover:text-blue-600">
-                  {video.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-1">{video.channel}</p>
-                <div className="flex items-center space-x-2 text-gray-500 text-xs mb-2">
-                  <span>{video.views}</span>
-                  <span>•</span>
-                  <span>Added {video.addedAt}</span>
+                {/* Desktop Layout */}
+                <div className="hidden lg:flex items-start gap-4 group">
+                  <div
+                    className="relative flex-shrink-0 cursor-pointer w-60"
+                    onClick={() => handleVideoClick(video)}
+                  >
+                    <img
+                      src={video.thumbnail}
+                      alt={video.title}
+                      className="w-60 h-40 object-cover rounded-lg"
+                    />
+                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                      {formatDuration(video.duration)}
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <h3
+                      className="font-medium w-fit text-base text-gray-900 mb-1 cursor-pointer hover:text-gray-700 line-clamp-2"
+                      onClick={() => handleVideoClick(video)}
+                    >
+                      {video.title}
+                    </h3>
+                    {video.owner?.username ? (
+                      <Link
+                        href={`/channel/${video.owner.username}`}
+                        className="text-sm text-gray-600 mb-1 hover:text-red-600 block w-fit"
+                      >
+                        {video.owner?.fullName || video.owner?.username || "Unknown Channel"}
+                      </Link>
+                    ) : (
+                      <p className="text-sm text-gray-600 mb-1">
+                        {video.owner?.fullName || video.owner?.username || "Unknown Channel"}
+                      </p>
+                    )}
+                    <div className="flex items-center text-sm text-gray-600">
+                      <span>{formatViews(video.views)}</span>
+                      <span className="mx-2">•</span>
+                      <span>Added {formatDate(video.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  <div className="relative flex-shrink-0 flex">
+                    <button
+                      onClick={() => handleRemoveVideo(video._id)}
+                      disabled={deletingId === video._id}
+                      className="p-2 rounded-full hover:bg-red-100 transition-opacity mr-1"
+                    >
+                      <Trash2 className="h-5 w-5 text-red-600" />
+                    </button>
+             
+                  </div>
                 </div>
-                <p className="text-gray-600 text-sm line-clamp-2">{video.description}</p>
               </div>
-
-              <button className="p-1 hover:bg-gray-100 rounded-full">
-                <MoreVertical className="h-5 w-5" />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {watchLaterVideos.length === 0 && (
-          <div className="text-center py-12">
-            <Clock className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500">No videos in Watch Later</p>
-            <p className="text-gray-400 text-sm mt-1">Videos you add to watch later will appear here</p>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20">
+            <Clock className="h-20 w-20 mx-auto text-gray-300 mb-4" />
+            <p className="text-gray-700 text-xl font-medium">
+              Save videos to watch later
+            </p>
+            <p className="text-gray-500 text-sm mt-2">
+              Videos you add to watch later will appear here
+            </p>
           </div>
         )}
       </div>
+    </div>
   )
 }
 

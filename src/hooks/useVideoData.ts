@@ -51,6 +51,8 @@ export const useVideoData = (videoId: string | string[]) => {
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [viewTracked, setViewTracked] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+
 
   // Helper functions for localStorage-based like status and count persistence
   const getLikeDataFromStorage = (videoId: string, userId: string) => {
@@ -72,6 +74,60 @@ export const useVideoData = (videoId: string | string[]) => {
       return { isLiked: false, likeCount: null }
     } catch {
       return { isLiked: false, likeCount: null }
+    }
+  }
+
+  // Helper functions for localStorage-based subscription status persistence
+  const getSubscriptionDataFromStorage = (channelId: string, userId: string) => {
+    try {
+      const subscriptions = JSON.parse(localStorage.getItem('userSubscriptions') || '{}')
+      return subscriptions[`${userId}_${channelId}`] || false
+    } catch {
+      return false
+    }
+  }
+
+  // Helper functions for localStorage-based watch-later status persistence
+  const getWatchLaterDataFromStorage = (videoId: string, userId: string) => {
+    try {
+      const watchLater = JSON.parse(localStorage.getItem('watchLaterVideos') || '{}')
+      return watchLater[`${userId}_${videoId}`] || false
+    } catch {
+      return false
+    }
+  }
+
+  const saveWatchLaterDataToStorage = (videoId: string, userId: string, isSaved: boolean) => {
+    try {
+      const watchLater = JSON.parse(localStorage.getItem('watchLaterVideos') || '{}')
+
+      if (isSaved) {
+        watchLater[`${userId}_${videoId}`] = true
+      } else {
+        delete watchLater[`${userId}_${videoId}`]
+      }
+
+      localStorage.setItem('watchLaterVideos', JSON.stringify(watchLater))
+    } catch (error) {
+      // Handle error silently
+    }
+  }
+
+
+
+  const saveSubscriptionDataToStorage = (channelId: string, userId: string, isSubscribed: boolean) => {
+    try {
+      const subscriptions = JSON.parse(localStorage.getItem('userSubscriptions') || '{}')
+
+      if (isSubscribed) {
+        subscriptions[`${userId}_${channelId}`] = true
+      } else {
+        delete subscriptions[`${userId}_${channelId}`]
+      }
+
+      localStorage.setItem('userSubscriptions', JSON.stringify(subscriptions))
+    } catch (error) {
+      // Handle error silently
     }
   }
 
@@ -224,10 +280,10 @@ export const useVideoData = (videoId: string | string[]) => {
   const fetchComments = async () => {
     try {
       const response = await publicApi.get(`/comments/${videoId}`)
-      
+
       // Handle the corrected API response structure
       const commentsData = response.data?.data || response.data || []
-      
+
       setComments(Array.isArray(commentsData) ? commentsData : [])
     } catch (error: any) {
       setComments([])
@@ -240,23 +296,6 @@ export const useVideoData = (videoId: string | string[]) => {
       if (!video?.Owner?._id) return
 
       let subscribersCount = 0
-      let isSubscribed = false
-
-      // Only check subscription status if user is authenticated
-      const token = localStorage.getItem('accessToken')
-      if (token && currentUser) {
-        try {
-          const subscriptionsResponse = await api.get(`/subscriptions/u/${currentUser._id}`)
-          const subscriptions = subscriptionsResponse.data?.statusCode || subscriptionsResponse.data?.data || []
-          isSubscribed = Array.isArray(subscriptions) && subscriptions.some(sub => {
-            const channel = sub.channel || sub
-            return channel._id === video.Owner._id || channel.username === video.Owner.username
-          })
-        } catch (error) {
-          // Handle error silently - user might not be authenticated
-          isSubscribed = false
-        }
-      }
 
       // Fetch subscriber count using public API
       try {
@@ -268,10 +307,35 @@ export const useVideoData = (videoId: string | string[]) => {
       }
 
       setSubscriberCount(subscribersCount)
-      setIsSubscribed(isSubscribed)
+
+      // Only check subscription status if user is authenticated
+      const token = localStorage.getItem('accessToken')
+      if (token && currentUser) {
+        // First check localStorage for subscription status
+        const storedSubscription = getSubscriptionDataFromStorage(video.Owner._id, currentUser._id || currentUser.username)
+
+        try {
+          const subscriptionsResponse = await api.get(`/subscriptions/u/${currentUser._id}`)
+          const subscriptions = subscriptionsResponse.data?.statusCode || subscriptionsResponse.data?.data || []
+          const backendIsSubscribed = Array.isArray(subscriptions) && subscriptions.some(sub => {
+            const channel = sub.channel || sub
+            return channel._id === video.Owner._id || channel.username === video.Owner.username
+          })
+
+          // Only update if backend data is different from stored data
+          if (backendIsSubscribed !== storedSubscription) {
+            setIsSubscribed(backendIsSubscribed)
+            saveSubscriptionDataToStorage(video.Owner._id, currentUser._id || currentUser.username, backendIsSubscribed)
+          }
+        } catch (error) {
+          // If backend fails, keep the stored subscription status (already set in useEffect)
+          console.log('Could not fetch subscription status from backend, using stored value')
+        }
+
+
+      }
     } catch (error) {
       setSubscriberCount(0)
-      setIsSubscribed(false)
     }
   }
 
@@ -323,9 +387,20 @@ export const useVideoData = (videoId: string | string[]) => {
   }
 
   const handleSubscribeToggle = async () => {
-    if (!video?.Owner?._id) return
+    if (!video?.Owner?._id || !currentUser) return
+
+    const previousIsSubscribed = isSubscribed
+    const previousSubscriberCount = subscriberCount
 
     try {
+      // Optimistically update UI
+      const newIsSubscribed = !previousIsSubscribed
+      setIsSubscribed(newIsSubscribed)
+      setSubscriberCount(prev => newIsSubscribed ? (prev || 0) + 1 : Math.max((prev || 0) - 1, 0))
+
+      // Save to localStorage immediately for persistence
+      saveSubscriptionDataToStorage(video.Owner._id, currentUser._id || currentUser.username, newIsSubscribed)
+
       const endpointsToTry = [
         { method: 'POST', url: `/subscriptions/c/${video.Owner._id}` },
         { method: 'POST', url: `/subscription/toggle/${video.Owner._id}` },
@@ -343,12 +418,18 @@ export const useVideoData = (videoId: string | string[]) => {
         }
       }
 
-      if (success) {
-        const newIsSubscribed = !isSubscribed
-        setIsSubscribed(newIsSubscribed)
-        setSubscriberCount(prev => newIsSubscribed ? (prev || 0) + 1 : Math.max((prev || 0) - 1, 0))
+      if (!success) {
+        // Revert optimistic update on error
+        setIsSubscribed(previousIsSubscribed)
+        setSubscriberCount(previousSubscriberCount)
+        saveSubscriptionDataToStorage(video.Owner._id, currentUser._id || currentUser.username, previousIsSubscribed)
+        alert('Failed to toggle subscription.')
       }
     } catch (error) {
+      // Revert optimistic update on error
+      setIsSubscribed(previousIsSubscribed)
+      setSubscriberCount(previousSubscriberCount)
+      saveSubscriptionDataToStorage(video.Owner._id, currentUser._id || currentUser.username, previousIsSubscribed)
       alert('Failed to toggle subscription.')
     }
   }
@@ -383,7 +464,7 @@ export const useVideoData = (videoId: string | string[]) => {
         // Add the new comment to the beginning of the list
         setComments(prev => [formattedComment, ...prev])
       }
-    } catch (error: any) { 
+    } catch (error: any) {
       alert('Failed to add comment. Please try again.')
     }
   }
@@ -397,17 +478,17 @@ export const useVideoData = (videoId: string | string[]) => {
         return comments.map(comment => {
           if (comment._id === commentId) {
             const newIsLiked = !comment.isLiked
-            const newLikesCount = newIsLiked 
-              ? (comment.likesCount || 0) + 1 
+            const newLikesCount = newIsLiked
+              ? (comment.likesCount || 0) + 1
               : Math.max((comment.likesCount || 0) - 1, 0)
-            
+
             return {
               ...comment,
               isLiked: newIsLiked,
               likesCount: newLikesCount
             }
           }
-          
+
           // Check replies
           if (comment.replies && comment.replies.length > 0) {
             return {
@@ -415,7 +496,7 @@ export const useVideoData = (videoId: string | string[]) => {
               replies: updateCommentLikes(comment.replies)
             }
           }
-          
+
           return comment
         })
       }
@@ -431,17 +512,17 @@ export const useVideoData = (videoId: string | string[]) => {
         return comments.map(comment => {
           if (comment._id === commentId) {
             const revertIsLiked = !comment.isLiked
-            const revertLikesCount = revertIsLiked 
-              ? (comment.likesCount || 0) + 1 
+            const revertLikesCount = revertIsLiked
+              ? (comment.likesCount || 0) + 1
               : Math.max((comment.likesCount || 0) - 1, 0)
-            
+
             return {
               ...comment,
               isLiked: revertIsLiked,
               likesCount: revertLikesCount
             }
           }
-          
+
           // Check replies
           if (comment.replies && comment.replies.length > 0) {
             return {
@@ -449,7 +530,7 @@ export const useVideoData = (videoId: string | string[]) => {
               replies: revertCommentLikes(comment.replies)
             }
           }
-          
+
           return comment
         })
       }
@@ -498,8 +579,52 @@ export const useVideoData = (videoId: string | string[]) => {
           return comment
         }))
       }
-    } catch (error: any) { 
+    } catch (error: any) {
       alert('Failed to add reply. Please try again.')
+    }
+  }
+
+  const updateComment = async (commentId: string, content: string) => {
+    if (!content.trim() || !currentUser) return
+
+    try {
+      const response = await api.patch(`/comments/c/${commentId}`, {
+        content: content.trim()
+      })
+
+      // Handle different response structures
+      const updatedCommentData = response.data?.data || response.data
+
+      if (updatedCommentData) {
+        // Update the comment in the UI
+        setComments(prev => {
+          // Helper function to update comment recursively
+          const updateCommentInList = (comments: Comment[]): Comment[] => {
+            return comments.map(comment => {
+              if (comment._id === commentId) {
+                return {
+                  ...comment,
+                  content: updatedCommentData.content
+                }
+              }
+
+              // Check replies
+              if (comment.replies && comment.replies.length > 0) {
+                return {
+                  ...comment,
+                  replies: updateCommentInList(comment.replies)
+                }
+              }
+
+              return comment
+            })
+          }
+
+          return updateCommentInList(prev)
+        })
+      }
+    } catch (error: any) {
+      alert('Failed to update comment. Please try again.')
     }
   }
 
@@ -528,6 +653,40 @@ export const useVideoData = (videoId: string | string[]) => {
     }
   }
 
+  const toggleWatchLater = async () => {
+    if (!currentUser || !video) return
+
+    const previousIsSaved = isSaved
+
+    try {
+      // Optimistically update UI
+      const newIsSaved = !previousIsSaved
+      setIsSaved(newIsSaved)
+
+      // Save to localStorage immediately for persistence
+      saveWatchLaterDataToStorage(video._id, currentUser._id || currentUser.username, newIsSaved)
+
+      // Make API call
+      const response = await api.post('/users/watch-later/toggle', { videoId: video._id })
+      
+      // The API response should confirm the action
+      if (response.data?.success !== false) {
+        // Keep the optimistic update
+      } else {
+        // Revert if API indicates failure
+        setIsSaved(previousIsSaved)
+        saveWatchLaterDataToStorage(video._id, currentUser._id || currentUser.username, previousIsSaved)
+      }
+    } catch (error: any) {
+      // Revert optimistic update on error
+      setIsSaved(previousIsSaved)
+      saveWatchLaterDataToStorage(video._id, currentUser._id || currentUser.username, previousIsSaved)
+      alert('Failed to toggle watch later. Please try again.')
+    }
+  }
+
+
+
   useEffect(() => {
     if (videoId) {
       fetchVideo()
@@ -535,6 +694,7 @@ export const useVideoData = (videoId: string | string[]) => {
     }
   }, [videoId])
 
+  // Load localStorage data immediately when user and video are available
   useEffect(() => {
     if (currentUser && videoId && video) {
       const likeData = getLikeDataFromStorage(videoId as string, currentUser._id || currentUser.username)
@@ -545,8 +705,19 @@ export const useVideoData = (videoId: string | string[]) => {
         setLikeCount(likeData.likeCount)
         saveVideoLikeCountToStorage(video._id, likeData.likeCount)
       }
+
+      // Load subscription status from localStorage immediately
+      const storedSubscription = getSubscriptionDataFromStorage(video.Owner._id, currentUser._id || currentUser.username)
+      setIsSubscribed(storedSubscription)
+
+      // Load watch-later status from localStorage immediately
+      const storedWatchLater = getWatchLaterDataFromStorage(video._id, currentUser._id || currentUser.username)
+      setIsSaved(storedWatchLater)
+
     } else if (!currentUser) {
       setIsLiked(false)
+      setIsSubscribed(false)
+      setIsSaved(false)
       // Still show the stored like count even if user is not logged in
       const storedLikeCount = getVideoLikeCountFromStorage(videoId as string)
       if (storedLikeCount !== null) {
@@ -554,6 +725,33 @@ export const useVideoData = (videoId: string | string[]) => {
       }
     }
   }, [currentUser, videoId, video])
+
+  // Separate effect for initial backend sync (only on first load)
+  useEffect(() => {
+    if (currentUser && video) {
+      // Only sync if we don't have any localStorage data (first time loading)
+      const storedWatchLater = getWatchLaterDataFromStorage(video._id, currentUser._id || currentUser.username)
+      
+      if (!storedWatchLater) {
+        const syncWatchLaterStatus = async () => {
+          try {
+            const watchLaterResponse = await api.get('/users/watch-later')
+            const watchLaterData = watchLaterResponse.data?.data?.watchLater || []
+            const backendIsSaved = Array.isArray(watchLaterData) && watchLaterData.some(v => v._id === video._id)
+            
+            if (backendIsSaved) {
+              saveWatchLaterDataToStorage(video._id, currentUser._id || currentUser.username, backendIsSaved)
+              setIsSaved(backendIsSaved)
+            }
+          } catch (error) {
+            console.log('Could not sync watch-later status with backend')
+          }
+        }
+
+        syncWatchLaterStatus()
+      }
+    }
+  }, [currentUser, video])
 
   useEffect(() => {
     if (video && videoId) {
@@ -573,11 +771,14 @@ export const useVideoData = (videoId: string | string[]) => {
     subscriberCount,
     isLiked,
     likeCount,
+    isSaved,
     toggleLike,
     handleSubscribeToggle,
+    toggleWatchLater,
     addComment,
     addReply,
     toggleCommentLike,
+    updateComment,
     deleteComment,
     trackView
   }

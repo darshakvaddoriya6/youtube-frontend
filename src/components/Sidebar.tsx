@@ -17,6 +17,7 @@ const Sidebar = () => {
   const libraryItems = [
     { href: '/history', icon: History, label: 'History' },
     { href: '/liked', icon: ThumbsUp, label: 'Liked Videos' },
+    { href: '/watch-later', icon: Clock, label: 'Watch Later' },
     { href: '/playlists', icon: FolderOpen, label: 'Playlists' },
   ]
 
@@ -32,17 +33,16 @@ const Sidebar = () => {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={close}
         />
       )}
-      
+
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-16 h-full bg-white z-40 transform transition-all duration-300 ease-in-out lg:block ${
-          isOpen ? 'block w-60 lg:w-60' : 'hidden lg:block lg:w-[70px]'
-        }`}
+        className={`fixed left-0 top-16 h-full bg-white z-40 transform transition-all duration-300 ease-in-out lg:block ${isOpen ? 'block w-60 lg:w-60' : 'hidden lg:block lg:w-[70px]'
+          }`}
       >
         <div className="flex flex-col h-full">
           <div className="flex-1 overflow-y-auto">
@@ -52,9 +52,8 @@ const Sidebar = () => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center py-2 hover:bg-gray-100 ${
-                      isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
-                    } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
+                    className={`flex items-center py-2 hover:bg-gray-100 ${isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
+                      } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
                     title={isOpen ? '' : item.label}
                     onClick={() => {
                       // Close sidebar on mobile when clicking a link
@@ -79,9 +78,8 @@ const Sidebar = () => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center py-2 hover:bg-gray-100 ${
-                      isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
-                    } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
+                    className={`flex items-center py-2 hover:bg-gray-100 ${isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
+                      } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
                     title={isOpen ? '' : item.label}
                     onClick={() => {
                       // Close sidebar on mobile when clicking a link
@@ -106,9 +104,8 @@ const Sidebar = () => {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center py-2 hover:bg-gray-100 ${
-                      isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
-                    } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
+                    className={`flex items-center py-2 hover:bg-gray-100 ${isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
+                      } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
                     title={isOpen ? '' : item.label}
                     onClick={() => {
                       // Close sidebar on mobile when clicking a link

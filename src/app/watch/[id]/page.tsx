@@ -26,11 +26,14 @@ export default function WatchPage() {
     subscriberCount,
     isLiked,
     likeCount,
+    isSaved,
     toggleLike,
     handleSubscribeToggle,
+    toggleWatchLater,
     addComment,
     addReply,
     toggleCommentLike,
+    updateComment,
     deleteComment,
     trackView
   } = useVideoData(videoId)
@@ -51,6 +54,14 @@ export default function WatchPage() {
       await addReply(commentId, content)
     } catch (error) {
       console.error('Error adding reply:', error)
+    }
+  }
+
+  const handleUpdateComment = async (commentId: string, content: string) => {
+    try {
+      await updateComment(commentId, content)
+    } catch (error) {
+      console.error('Error updating comment:', error)
     }
   }
 
@@ -96,7 +107,10 @@ export default function WatchPage() {
             isLiked={isLiked}
             likeCount={likeCount}
             currentUser={currentUser}
+            videoId={videoId as string}
+            isSaved={isSaved}
             onToggleLike={toggleLike}
+            onToggleSave={toggleWatchLater}
           />
         </div>
 
@@ -116,6 +130,7 @@ export default function WatchPage() {
           onAddComment={handleAddComment}
           onToggleCommentLike={toggleCommentLike}
           onAddReply={handleAddReply}
+          onUpdateComment={handleUpdateComment}
           onDeleteComment={handleDeleteComment}
         />
 
@@ -150,7 +165,10 @@ export default function WatchPage() {
               isLiked={isLiked}
               likeCount={likeCount}
               currentUser={currentUser}
+              videoId={videoId as string}
+              isSaved={isSaved}
               onToggleLike={toggleLike}
+              onToggleSave={toggleWatchLater}
             />
           </div>
 
@@ -168,6 +186,7 @@ export default function WatchPage() {
             onAddComment={handleAddComment}
             onToggleCommentLike={toggleCommentLike}
             onAddReply={handleAddReply}
+            onUpdateComment={handleUpdateComment}
             onDeleteComment={handleDeleteComment}
           />
         </div>

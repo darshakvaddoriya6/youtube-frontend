@@ -1,4 +1,4 @@
-import { History } from "lucide-react";
+import { History ,} from "lucide-react";
 import HistoryItem from "./HistoryItem";
 
 interface HistoryListProps {

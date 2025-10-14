@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MoreVertical, X } from "lucide-react";
+import { MoreVertical, Trash2, } from "lucide-react";
 import { formatDuration, formatViews } from "@/lib/utils";
 import HistoryItemMenu from "./HistoryItemMenu";
 
@@ -80,7 +80,7 @@ const HistoryItem = ({
               disabled={deletingId === item._id}
               className="p-1 rounded-full hover:bg-red-100 mr-1"
             >
-              <X className="h-4 w-4 text-red-600" />
+              <Trash2 className="h-4 w-4 text-red-600" />
             </button>
             <button
               onClick={() => onToggleMenu(item._id)}
@@ -146,15 +146,9 @@ const HistoryItem = ({
           <button
             onClick={() => onDelete(item._id)}
             disabled={deletingId === item._id}
-            className="w-full px-4 py-2.5 text-left hover:bg-red-100 flex items-center gap-3 text-sm"
+            className="w-full px-3 py-3 text-left hover:bg-red-100 rounded-full  flex items-center gap-3 text-sm"
           >
-            <X className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => onToggleMenu(item._id)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-opacity"
-          >
-            <MoreVertical className="h-5 w-5 text-gray-700" />
+            <Trash2 className="h-5 w-5 text-red-600" />
           </button>
 
           <HistoryItemMenu

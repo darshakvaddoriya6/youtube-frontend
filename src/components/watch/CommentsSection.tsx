@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ThumbsUp, Trash2 } from 'lucide-react'
+import { ThumbsUp, Trash2, Edit2 } from 'lucide-react'
 
 interface Comment {
   _id: string
@@ -27,6 +27,7 @@ interface CommentsSectionProps {
   onAddComment: () => Promise<void>
   onToggleCommentLike: (commentId: string, commentOwnerId: string) => Promise<void>
   onAddReply: (commentId: string, content: string) => Promise<void>
+  onUpdateComment: (commentId: string, content: string) => Promise<void>
   onDeleteComment: (commentId: string) => Promise<void>
 }
 
@@ -38,6 +39,7 @@ export default function CommentsSection({
   onAddComment,
   onToggleCommentLike,
   onAddReply,
+  onUpdateComment,
   onDeleteComment
 }: CommentsSectionProps) {
   const [visibleComments, setVisibleComments] = useState(5)
@@ -45,6 +47,9 @@ export default function CommentsSection({
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
+  const [editingComment, setEditingComment] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false)
   const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: number }>({})
 
   const showMoreReplies = (commentId: string) => {
@@ -85,6 +90,29 @@ export default function CommentsSection({
   const handleCancelReply = () => {
     setReplyingTo(null)
     setReplyContent('')
+  }
+
+  const handleStartEdit = (commentId: string, currentContent: string) => {
+    setEditingComment(commentId)
+    setEditContent(currentContent)
+  }
+
+  const handleSubmitEdit = async (commentId: string) => {
+    if (!editContent.trim() || isSubmittingEdit) return
+
+    setIsSubmittingEdit(true)
+    try {
+      await onUpdateComment(commentId, editContent)
+      setEditContent('')
+      setEditingComment(null)
+    } finally {
+      setIsSubmittingEdit(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditingComment(null)
+    setEditContent('')
   }
 
   return (
@@ -179,6 +207,13 @@ export default function CommentsSection({
               onSubmitReply={handleSubmitReply}
               onCancelReply={handleCancelReply}
               isSubmittingReply={isSubmittingReply}
+              editingComment={editingComment}
+              editContent={editContent}
+              setEditContent={setEditContent}
+              onStartEdit={handleStartEdit}
+              onSubmitEdit={handleSubmitEdit}
+              onCancelEdit={handleCancelEdit}
+              isSubmittingEdit={isSubmittingEdit}
               visibleReplies={visibleReplies[comment._id] || 2}
               onShowMoreReplies={() => showMoreReplies(comment._id)}
             />
@@ -213,6 +248,13 @@ interface CommentItemProps {
   onSubmitReply: (commentId: string) => Promise<void>
   onCancelReply: () => void
   isSubmittingReply: boolean
+  editingComment: string | null
+  editContent: string
+  setEditContent: (content: string) => void
+  onStartEdit: (commentId: string, currentContent: string) => void
+  onSubmitEdit: (commentId: string) => Promise<void>
+  onCancelEdit: () => void
+  isSubmittingEdit: boolean
   isReply?: boolean
   visibleReplies?: number
   onShowMoreReplies?: () => void
@@ -230,11 +272,19 @@ function CommentItem({
   onSubmitReply,
   onCancelReply,
   isSubmittingReply,
+  editingComment,
+  editContent,
+  setEditContent,
+  onStartEdit,
+  onSubmitEdit,
+  onCancelEdit,
+  isSubmittingEdit,
   isReply = false,
   visibleReplies = 2,
   onShowMoreReplies
 }: CommentItemProps) {
   const isReplying = replyingTo === comment._id
+  const isEditing = editingComment === comment._id
   const [isDeleting, setIsDeleting] = useState(false)
   const isOwner = currentUser && currentUser._id === comment.owner._id
 
@@ -242,7 +292,7 @@ function CommentItem({
     if (!window.confirm('Are you sure you want to delete this comment?')) {
       return
     }
-    
+
     setIsDeleting(true)
     try {
       await onDeleteComment(comment._id)
@@ -267,9 +317,35 @@ function CommentItem({
             {new Date(comment.createdAt).toLocaleDateString()}
           </span>
         </div>
-        <p className="text-sm text-gray-800 mb-2">
-          {comment.content}
-        </p>
+        {isEditing ? (
+          <div className="mb-2">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full p-2 border border-gray-200 rounded-lg focus:border-blue-500 outline-none resize-none text-sm"
+              rows={2}
+            />
+            <div className="flex justify-end space-x-2 mt-2">
+              <button
+                onClick={onCancelEdit}
+                className="px-3 py-1 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => onSubmitEdit(comment._id)}
+                disabled={!editContent.trim() || isSubmittingEdit}
+                className="px-3 py-1 bg-blue-600 text-white text-xs rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSubmittingEdit ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-800 mb-2">
+            {comment.content}
+          </p>
+        )}
         <div className="flex items-center space-x-4">
           {currentUser ? (
             <button
@@ -294,6 +370,15 @@ function CommentItem({
               className="text-xs text-gray-600 hover:text-gray-800 transition-colors"
             >
               {isReplying ? 'Cancel' : 'Reply'}
+            </button>
+          )}
+          {isOwner && !isEditing && (
+            <button
+              onClick={() => onStartEdit(comment._id, comment.content)}
+              className="flex items-center space-x-1 text-xs text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <Edit2 className="h-3 w-3" />
+              <span>Edit</span>
             </button>
           )}
           {isOwner && (
@@ -360,6 +445,13 @@ function CommentItem({
                 onSubmitReply={onSubmitReply}
                 onCancelReply={onCancelReply}
                 isSubmittingReply={isSubmittingReply}
+                editingComment={editingComment}
+                editContent={editContent}
+                setEditContent={setEditContent}
+                onStartEdit={onStartEdit}
+                onSubmitEdit={onSubmitEdit}
+                onCancelEdit={onCancelEdit}
+                isSubmittingEdit={isSubmittingEdit}
                 isReply={true}
               />
             ))}
