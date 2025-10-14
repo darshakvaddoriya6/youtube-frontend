@@ -29,77 +29,104 @@ const Sidebar = () => {
   const isActive = (href: string) => pathname === href
 
   return (
-    <div
-      className={`fixed left-0 top-16 h-full bg-white  z-40 transform transition-all duration-300 ease-in-out ${
-        isOpen ? 'w-60' : 'w-[70px]'
-      }`}
-    >
-      <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto">
-          <div className="py-4">
-            <div className="mb-6">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center py-2 hover:bg-gray-100 ${
-                    isOpen ? 'px-6' : 'px-4 justify-center'
-                  } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
-                  title={isOpen ? '' : item.label}
-               
-                >
-                  <item.icon className="h-6 w-6" />
-                  {isOpen && <span className="text-sm font-medium ml-4">{item.label}</span>}
-                </Link>
-              ))}
-            </div>
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={close}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div
+        className={`fixed left-0 top-16 h-full bg-white z-40 transform transition-all duration-300 ease-in-out lg:block ${
+          isOpen ? 'block w-60 lg:w-60' : 'hidden lg:block lg:w-[70px]'
+        }`}
+      >
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto">
+            <div className="py-4">
+              <div className="mb-6">
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center py-2 hover:bg-gray-100 ${
+                      isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
+                    } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
+                    title={isOpen ? '' : item.label}
+                    onClick={() => {
+                      // Close sidebar on mobile when clicking a link
+                      if (window.innerWidth < 1024) {
+                        close()
+                      }
+                    }}
+                  >
+                    <item.icon className="h-6 w-6 lg:h-6 lg:w-6" />
+                    {isOpen && <span className="text-sm lg:text-sm font-medium ml-4 lg:ml-4">{item.label}</span>}
+                  </Link>
+                ))}
+              </div>
 
-            <div className="mb-6">
-              {isOpen && (
-                <h3 className="px-6 py-2 text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                  Library
-                </h3>
-              )}
-              {libraryItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center py-2 hover:bg-gray-100 ${
-                    isOpen ? 'px-6' : 'px-4 justify-center'
-                  } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
-                  title={isOpen ? '' : item.label}
-                >
-                  <item.icon className="h-6 w-6" />
-                  {isOpen && <span className="text-sm font-medium ml-4">{item.label}</span>}
-                </Link>
-              ))}
-            </div>
+              <div className="mb-6">
+                {isOpen && (
+                  <h3 className="px-6 lg:px-6 py-2 text-sm lg:text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Library
+                  </h3>
+                )}
+                {libraryItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center py-2 hover:bg-gray-100 ${
+                      isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
+                    } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
+                    title={isOpen ? '' : item.label}
+                    onClick={() => {
+                      // Close sidebar on mobile when clicking a link
+                      if (window.innerWidth < 1024) {
+                        close()
+                      }
+                    }}
+                  >
+                    <item.icon className="h-6 w-6 lg:h-6 lg:w-6" />
+                    {isOpen && <span className="text-sm lg:text-sm font-medium ml-4 lg:ml-4">{item.label}</span>}
+                  </Link>
+                ))}
+              </div>
 
-            <div>
-              {isOpen && (
-                <h3 className="px-6 py-2 text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                  Settings
-                </h3>
-              )}
-              {settingsItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center py-2 hover:bg-gray-100 ${
-                    isOpen ? 'px-6' : 'px-4 justify-center'
-                  } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
-                  title={isOpen ? '' : item.label}
-                  
-                >
-                  <item.icon className="h-6 w-6" />
-                  {isOpen && <span className="text-sm font-medium ml-4">{item.label}</span>}
-                </Link>
-              ))}
+              <div>
+                {isOpen && (
+                  <h3 className="px-6 lg:px-6 py-2 text-sm lg:text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                    Settings
+                  </h3>
+                )}
+                {settingsItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center py-2 hover:bg-gray-100 ${
+                      isOpen ? 'px-6 lg:px-6' : 'px-4 lg:px-4 justify-center'
+                    } ${isActive(item.href) ? 'bg-gray-100' : ''}`}
+                    title={isOpen ? '' : item.label}
+                    onClick={() => {
+                      // Close sidebar on mobile when clicking a link
+                      if (window.innerWidth < 1024) {
+                        close()
+                      }
+                    }}
+                  >
+                    <item.icon className="h-6 w-6 lg:h-6 lg:w-6" />
+                    {isOpen && <span className="text-sm lg:text-sm font-medium ml-4 lg:ml-4">{item.label}</span>}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

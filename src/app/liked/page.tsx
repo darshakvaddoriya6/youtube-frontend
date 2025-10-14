@@ -46,7 +46,7 @@ export default function LikedVideosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
         <LikedVideosHeader />
         <LikedVideosList likedVideos={likedVideos} />
       </div>

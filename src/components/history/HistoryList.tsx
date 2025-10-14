@@ -37,11 +37,11 @@ const HistoryList = ({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {Object.entries(groupedHistory).map(([date, items]) => (
         <div key={date}>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{date}</h2>
-          <div className="space-y-4">
+          <h2 className="text-base lg:text-lg font-semibold text-gray-900 mb-3 lg:mb-4">{date}</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 lg:space-y-4 lg:block">
             {Array.isArray(items) &&
               items.map((item: any) => (
                 <HistoryItem

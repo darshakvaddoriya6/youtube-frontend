@@ -71,10 +71,64 @@ export default function WatchPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 xl:grid-cols-12 lg:grid-cols-4 gap-8">
+    <div className="p-3 lg:p-6 max-w-6xl mx-auto">
+      {/* Mobile Layout: Video -> Info -> Comments -> Recommended */}
+      <div className="lg:hidden">
+        {/* Video Player */}
+        <VideoPlayer
+          videoFile={video.videoFile}
+          thumbnail={video.thumbnail}
+          title={video.title}
+          onTrackView={trackView}
+        />
+
+        {/* Channel Info and Actions */}
+        <div className="mt-4 flex flex-col gap-4">
+          <ChannelInfo
+            owner={video.Owner}
+            subscriberCount={subscriberCount}
+            isSubscribed={isSubscribed}
+            onSubscribeToggle={handleSubscribeToggle}
+            currentUser={currentUser}
+          />
+
+          <VideoActions
+            isLiked={isLiked}
+            likeCount={likeCount}
+            currentUser={currentUser}
+            onToggleLike={toggleLike}
+          />
+        </div>
+
+        {/* Video Description */}
+        <VideoDescription
+          views={video.views || 0}
+          createdAt={video.createdAt}
+          description={video.description}
+        />
+
+        {/* Comments Section */}
+        <CommentsSection
+          comments={comments}
+          currentUser={currentUser}
+          newComment={newComment}
+          setNewComment={setNewComment}
+          onAddComment={handleAddComment}
+          onToggleCommentLike={toggleCommentLike}
+          onAddReply={handleAddReply}
+          onDeleteComment={handleDeleteComment}
+        />
+
+        {/* Recommended Videos */}
+        <div className="mt-6">
+          <RecommendedVideos videos={recommended} />
+        </div>
+      </div>
+
+      {/* Desktop Layout: Side by side */}
+      <div className="hidden lg:grid lg:grid-cols-12 gap-8">
         {/* Main video section */}
-        <div className="xl:col-span-8 lg:col-span-3">
+        <div className="lg:col-span-8">
           <VideoPlayer
             videoFile={video.videoFile}
             thumbnail={video.thumbnail}
@@ -118,7 +172,9 @@ export default function WatchPage() {
           />
         </div>
 
-        <RecommendedVideos videos={recommended} />
+        <div className="lg:col-span-4">
+          <RecommendedVideos videos={recommended} />
+        </div>
       </div>
     </div>
   )

@@ -80,7 +80,7 @@ const WatchLater = () => {
                 <img
                   src={video.thumbnail}
                   alt={video.title}
-                  className="w-40 h-24 object-cover rounded-lg cursor-pointer hover:opacity-80"
+                  className="w-full h-60 object-cover rounded-lg cursor-pointer hover:opacity-80"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Play className="h-6 w-6 text-white bg-black bg-opacity-70 rounded-full p-1" />

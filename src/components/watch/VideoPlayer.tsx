@@ -103,17 +103,17 @@ export default function VideoPlayer({ videoFile, thumbnail, title, onTrackView }
         Your browser does not support the video tag.
       </video>
       {videoError && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800 mb-2">{videoError}</p>
+        <div className="mt-4 p-3 lg:p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-800 mb-2 text-sm lg:text-base">{videoError}</p>
           <button
             onClick={handleRetry}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            className="px-3 lg:px-4 py-2 text-sm lg:text-base bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
           >
             Retry Loading Video
           </button>
         </div>
       )}
-      <h1 className="text-xl font-bold mt-4">{title}</h1>
+      <h1 className="text-lg lg:text-xl font-bold mt-4">{title}</h1>
     </div>
   )
 }

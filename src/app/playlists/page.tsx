@@ -88,7 +88,7 @@ const Playlists = () => {
                 <img
                   src={playlist.thumbnail}
                   alt={playlist.title}
-                  className="w-full h-32 object-cover rounded-t-lg"
+                  className="w-full h-60 object-cover rounded-t-lg"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-t-lg">
                   <Play className="h-8 w-8 text-white" />

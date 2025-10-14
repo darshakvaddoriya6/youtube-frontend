@@ -33,16 +33,18 @@ const SubscriptionsList = ({
 }: SubscriptionsListProps) => {
   if (subscriptions.length === 0) {
     return (
-      <div className="text-center py-16">
-        <Users className="h-20 w-20 mx-auto text-gray-300 mb-4" />
-        <p className="text-xl font-medium text-gray-500 mb-2">No subscriptions yet</p>
-        <p className="text-gray-400">Subscribe to channels to see their latest videos here</p>
+      <div className="text-center py-12 lg:py-16 px-4">
+        <Users className="h-16 w-16 lg:h-20 lg:w-20 mx-auto text-gray-300 mb-4" />
+        <p className="text-lg lg:text-xl font-medium text-gray-500 mb-2">No subscriptions yet</p>
+        <p className="text-sm lg:text-base text-gray-400 max-w-sm mx-auto leading-relaxed">
+          Subscribe to channels to see their latest videos here
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 lg:space-y-4">
       {subscriptions.map((subscription) => (
         <SubscriptionCard
           key={subscription._id}

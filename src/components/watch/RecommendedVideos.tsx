@@ -45,11 +45,11 @@ const formatViews = (views: number) => {
 
 export default function RecommendedVideos({ videos }: RecommendedVideosProps) {
   return (
-    <div className="xl:col-span-4 lg:col-span-1">
-      <h2 className="text-lg font-semibold mb-4">Recommended</h2>
+    <div className="w-full">
+      <h2 className="text-base lg:text-lg font-semibold mb-4">Recommended</h2>
       {videos.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          <p>No videos available</p>
+          <p className="text-sm lg:text-base">No videos available</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -57,20 +57,20 @@ export default function RecommendedVideos({ videos }: RecommendedVideosProps) {
             <Link 
               key={video._id} 
               href={`/watch/${video._id}`} 
-              className="flex gap-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
+              className="flex gap-2 lg:gap-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
             >
               <div className="relative flex-shrink-0">
                 <img
                   src={video.thumbnail}
                   alt={video.title}
-                  className="xl:w-44 xl:h-28 lg:w-36 lg:h-24 w-40 h-24 object-cover rounded-lg"
+                  className="w-32 h-full object-cover rounded-lg"
                 />
                 <div className="absolute bottom-1 right-1 bg-black bg-opacity-90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
                   {video.duration ? formatDuration(video.duration) : '0:00'}
                 </div>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm leading-tight line-clamp-2 hover:text-blue-600 mb-1">
+                <h3 className="font-medium text-xs lg:text-sm leading-tight line-clamp-2 hover:text-blue-600 mb-1">
                   {video.title}
                 </h3>
                 <p className="text-xs text-gray-600 mb-1">

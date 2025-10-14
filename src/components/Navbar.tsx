@@ -119,26 +119,27 @@ const Navbar = () => {
   }, [])
 
   return (
-    <nav className="fixed w-full top-0 bg-white px-4 py-3 z-[2147483646] navbar">
+    <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[2147483646] navbar">
       <div className="flex items-center justify-between">
         {/* Left - Menu + Logo */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-4">
           <button
             onClick={toggle}
             className="p-2 hover:bg-gray-100 rounded-full"
             title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             aria-expanded={isSidebarOpen}
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5 lg:h-6 lg:w-6" />
           </button>
 
-          <Link href="/" className="text-xl font-bold text-red-600">
-            YouTube Clone
+          <Link href="/" className="text-lg lg:text-xl font-bold text-red-600">
+            <span className="hidden lg:inline">YouTube Clone</span>
+            <span className="lg:hidden">YT</span>
           </Link>
         </div>
 
         {/* Center - Search */}
-        <div className="flex-1 max-w-2xl mx-8 relative" ref={searchInputRef}>
+        <div className="flex-1 max-w-2xl mx-2 lg:mx-8 relative" ref={searchInputRef}>
           <form onSubmit={handleSearch} className="flex">
             <div className="flex-1 relative">
               <input
@@ -172,7 +173,7 @@ const Navbar = () => {
                     setShowSuggestions(true)
                   }
                 }}
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-l-full focus:outline-none focus:border-red-500"
+                className="w-full px-3 lg:px-4 py-2 pr-10 text-sm lg:text-base border border-gray-300 rounded-l-full focus:outline-none focus:border-red-500"
               />
               {searchQuery && (
                 <button
@@ -191,9 +192,9 @@ const Navbar = () => {
             <button
               type="submit"
               disabled={!searchQuery.trim()}
-              className="px-6 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 lg:px-6 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-4 w-4 lg:h-5 lg:w-5" />
             </button>
           </form>
 
@@ -270,15 +271,15 @@ const Navbar = () => {
         </div>
 
         {/* Right - User actions */}
-        <div className="flex items-center space-x-4 px-6">
+        <div className="flex items-center space-x-2 lg:space-x-4 px-2 lg:px-6">
           {user ? (
             <>
               <button
                 onClick={() => setIsUploadModalOpen(true)}
-                className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded-full"
+                className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-4 py-2 hover:bg-gray-100 rounded-full"
               >
-                <Plus className="h-5 w-5" />
-                <span className="text-sm font-medium">Upload video</span>
+                <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
+                <span className="text-xs lg:text-sm font-medium hidden lg:inline">Upload video</span>
               </button>
 
               <div className="relative">
@@ -289,7 +290,7 @@ const Navbar = () => {
                   <img
                     src={user.avatar}
                     alt={user.fullName}
-                    className="h-8 w-8 rounded-full"
+                    className="h-6 w-6 lg:h-8 lg:w-8 rounded-full"
                   />
                 </button>
 
@@ -314,11 +315,11 @@ const Navbar = () => {
               </div>
             </>
           ) : (
-            <div className="flex items-center space-x-2 ">
-              <Link href="/login" className="px-4 py-2 text-black hover:bg-blue-50 rounded">
+            <div className="flex items-center space-x-1 lg:space-x-2">
+              <Link href="/login" className="px-2 lg:px-4 py-2 text-xs lg:text-sm text-black hover:bg-blue-50 rounded">
                 Sign In
               </Link>
-              <Link href="/register" className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded">
+              <Link href="/register" className="px-2 lg:px-4 py-2 text-xs lg:text-sm text-white bg-red-600 hover:bg-red-700 rounded">
                 Sign Up
               </Link>
             </div>

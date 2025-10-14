@@ -107,32 +107,32 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="p-6 ml-16">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">
+    <div className="p-3 lg:p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-4 lg:mb-6">
+          <h1 className="text-lg lg:text-2xl font-semibold text-gray-900">
             Search results for "{query}"
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm lg:text-base text-gray-600 mt-1">
             {videos.length} {videos.length === 1 ? 'result' : 'results'} found
           </p>
         </div>
 
         {error && (
           <div className="text-center py-8">
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600 text-sm lg:text-base">{error}</p>
             <button
               onClick={() => searchVideos(query)}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="mt-4 px-4 py-2 text-sm lg:text-base bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Try Again
             </button>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-3 lg:space-y-4">
           {videos.map((video) => (
-            <div key={video._id} className="flex gap-4 p-4 hover:bg-gray-50 rounded-lg">
+            <div key={video._id} className="flex flex-col lg:flex-row gap-3 lg:gap-4 p-3 lg:p-4 hover:bg-gray-50 rounded-lg">
               <Link
                 href={`/watch/${video._id}`}
                 onClick={() => handleVideoClick(video._id)}
@@ -142,7 +142,7 @@ export default function SearchPage() {
                   <img
                     src={video.thumbnail}
                     alt={video.title}
-                    className="w-80 h-48 object-cover rounded-lg"
+                    className="w-full h-60 object-cover rounded-lg"
                   />
                   <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
                     {formatDuration(video.duration)}
@@ -156,12 +156,12 @@ export default function SearchPage() {
                   onClick={() => handleVideoClick(video._id)}
                   className="block"
                 >
-                  <h3 className="text-lg font-medium text-gray-900 hover:text-red-600 line-clamp-2">
+                  <h3 className="text-base lg:text-lg font-medium text-gray-900 hover:text-red-600 line-clamp-2">
                     {video.title}
                   </h3>
                 </Link>
                 
-                <div className="flex items-center text-sm text-gray-600 mt-2">
+                <div className="flex items-center text-xs lg:text-sm text-gray-600 mt-2">
                   <span>{formatViews(video.views)}</span>
                   <span className="mx-2">•</span>
                   <span>{new Date(video.createdAt).toLocaleDateString()}</span>
@@ -175,15 +175,15 @@ export default function SearchPage() {
                     <img
                       src={video.owner.avatar}
                       alt={video.owner.fullName}
-                      className="w-6 h-6 rounded-full mr-2"
+                      className="w-5 h-5 lg:w-6 lg:h-6 rounded-full mr-2"
                     />
-                    <span className="text-sm text-gray-600 hover:text-gray-900">
+                    <span className="text-xs lg:text-sm text-gray-600 hover:text-gray-900">
                       {video.owner.fullName}
                     </span>
                   </Link>
                 </div>
 
-                <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                <p className="text-xs lg:text-sm text-gray-600 mt-2 line-clamp-2">
                   {video.description}
                 </p>
               </div>

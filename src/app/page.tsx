@@ -151,11 +151,9 @@ export default function HomePage() {
   }
 
   return (
-    <div className="p-6 ml-16">
-      <div className="max-w-7xl mx-auto">
-
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="p-3 lg:p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {videos.map((video) => (
             <div key={video._id} className="group cursor-pointer">
               <Link
@@ -167,7 +165,7 @@ export default function HomePage() {
                   <img
                     src={video.thumbnail}
                     alt={video.title}
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full h-60 object-cover rounded-lg"
                   />
                   <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
                     {formatDuration(video.duration)}
@@ -184,7 +182,7 @@ export default function HomePage() {
                     <img
                       src={video.owner.avatar}
                       alt={video.owner.fullName}
-                      className="w-10 h-10 rounded-full"
+                      className="w-8 h-8 lg:w-10 lg:h-10 rounded-full"
                     />
                   </Link>
                   <div className="flex-1 min-w-0">
@@ -193,17 +191,17 @@ export default function HomePage() {
                       onClick={() => handleVideoClick(video._id)}
                       className="block"
                     >
-                      <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-red-600">
+                      <h3 className="text-sm lg:text-base font-medium text-gray-900 line-clamp-2 group-hover:text-red-600">
                         {video.title}
                       </h3>
                     </Link>
                     <Link
                       href={`/channel/${video.owner.username}`}
-                      className="text-sm text-gray-600 mt-1 hover:text-gray-900 transition-colors"
+                      className="text-xs lg:text-sm text-gray-600 mt-1 hover:text-gray-900 transition-colors"
                     >
                       {video.owner.fullName}
                     </Link>
-                    <div className="flex items-center text-sm text-gray-600 mt-1">
+                    <div className="flex items-center text-xs lg:text-sm text-gray-600 mt-1">
                       <span className="font-medium">{formatViews(video.views)}</span>
                       <span className="mx-1">•</span>
                       <span>{new Date(video.createdAt).toLocaleDateString()}</span>

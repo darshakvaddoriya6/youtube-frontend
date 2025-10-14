@@ -46,7 +46,7 @@ export default function LikedVideosList({ likedVideos }: LikedVideosListProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 lg:space-y-4 lg:block">
       {likedVideos.map((likedVideo) => (
         <LikedVideoCard key={likedVideo._id} likedVideo={likedVideo} />
       ))}

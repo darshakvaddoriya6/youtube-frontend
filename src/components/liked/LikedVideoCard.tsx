@@ -88,90 +88,182 @@ export default function LikedVideoCard({ likedVideo }: LikedVideoCardProps) {
   }
 
   return (
-    <div className="flex items-start gap-4 group">
-      {/* Thumbnail */}
-      <div
-        className="relative flex-shrink-0 cursor-pointer w-60"
-        onClick={handleVideoClick}
-      >
-        <img
-          src={video.thumbnail || '/api/placeholder/240/135'}
-          alt={video.title || 'Video'}
-          className="w-60 h-36 object-cover rounded-lg hover:opacity-90 transition-opacity"
-        />
-        <div className="absolute bottom-2 right-2 bg-black bg-opacity-90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
-          {video.duration ? formatDuration(video.duration) : "0:00"}
-        </div>
-      </div>
-
-      {/* Video Info */}
-      <div className="flex-1 min-w-0">
-        <h3
-          className="font-medium w-fit text-base text-gray-900 mb-1 cursor-pointer hover:text-gray-700 line-clamp-2"
+    <>
+      {/* Mobile Layout: Video first, then info below */}
+      <div className="lg:hidden">
+        {/* Video Thumbnail */}
+        <div
+          className="relative cursor-pointer mb-3"
           onClick={handleVideoClick}
         >
-          {video.title || 'Untitled Video'}
-        </h3>
-        <p
-          className="text-sm text-gray-600 mb-1 cursor-pointer w-fit hover:text-red-600"
-          onClick={handleChannelClick}
-        >
-          {video.owner?.fullName || video.owner?.username || "Unknown Channel"}
-        </p>
-        <div className="flex items-center text-sm text-gray-600">
-          <span>
-            {video.views ? formatViews(video.views) : "0 views"}
-          </span>
-          <span className="mx-1">•</span>
-          <span>Liked {formatTimeAgo(likedVideo.createdAt)}</span>
+          <div className="relative">
+            <img
+              src={video.thumbnail || '/api/placeholder/240/135'}
+              alt={video.title || 'Video'}
+              className="w-full h-60 object-cover rounded-lg"
+            />
+            <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+              {video.duration ? formatDuration(video.duration) : "0:00"}
+            </div>
+          </div>
+        </div>
+
+        {/* Video Info Below */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <h3
+              className="font-medium text-sm text-gray-900 mb-2 cursor-pointer hover:text-gray-700 line-clamp-2"
+              onClick={handleVideoClick}
+            >
+              {video.title || 'Untitled Video'}
+            </h3>
+            <p
+              className="text-xs text-gray-600 mb-1 cursor-pointer w-fit hover:text-red-600"
+              onClick={handleChannelClick}
+            >
+              {video.owner?.fullName || video.owner?.username || "Unknown Channel"}
+            </p>
+            <div className="flex items-center text-xs text-gray-600">
+              <span>
+                {video.views ? formatViews(video.views) : "0 views"}
+              </span>
+              <span className="mx-1">•</span>
+              <span>Liked {formatTimeAgo(likedVideo.createdAt)}</span>
+            </div>
+          </div>
+
+          {/* Menu Button */}
+          <div className="relative flex-shrink-0 ml-2">
+            <button
+              onClick={() => setActiveMenu(!activeMenu)}
+              className="p-1 rounded-full hover:bg-gray-100"
+            >
+              <MoreVertical className="h-4 w-4 text-gray-700" />
+            </button>
+
+            {/* Mobile Dropdown Menu */}
+            {activeMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setActiveMenu(false)}
+                ></div>
+                <div className="absolute right-0 top-8 z-20 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
+                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
+                    <ListPlus className="h-4 w-4" />
+                    <span>Add to queue</span>
+                  </button>
+                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
+                    <Clock className="h-4 w-4" />
+                    <span>Save to Watch later</span>
+                  </button>
+                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
+                    <Bookmark className="h-4 w-4" />
+                    <span>Save to playlist</span>
+                  </button>
+                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
+                    <Share2 className="h-4 w-4" />
+                    <span>Share</span>
+                  </button>
+                  <button className="w-full px-3 py-2 text-left hover:bg-red-100 flex items-center gap-2 text-xs text-red-600">
+                    <X className="h-4 w-4" />
+                    <span>Remove from Liked videos</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Menu Button */}
-      <div className="relative flex-shrink-0 flex">
-        <button
-          onClick={() => setActiveMenu(!activeMenu)}
-          className="p-2 rounded-full hover:bg-gray-100 transition-opacity"
+      {/* Desktop Layout: Side by side */}
+      <div className="hidden lg:flex items-start gap-4 group">
+        {/* Thumbnail */}
+        <div
+          className="relative flex-shrink-0 cursor-pointer w-60"
+          onClick={handleVideoClick}
         >
-          <MoreVertical className="h-5 w-5 text-gray-700" />
-        </button>
-
-        {/* Dropdown Menu */}
-        {activeMenu && (
-          <>
-            <div
-              className="fixed inset-0 z-10"
-              onClick={() => setActiveMenu(false)}
-            ></div>
-            <div className="absolute right-0 top-10 z-20 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
-              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                <ListPlus className="h-5 w-5" />
-                <span>Add to queue</span>
-              </button>
-              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                <Clock className="h-5 w-5" />
-                <span>Save to Watch later</span>
-              </button>
-              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                <Bookmark className="h-5 w-5" />
-                <span>Save to playlist</span>
-              </button>
-              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                <Download className="h-5 w-5" />
-                <span>Download</span>
-              </button>
-              <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                <Share2 className="h-5 w-5" />
-                <span>Share</span>
-              </button>
-              <button className="w-full px-4 py-2.5 text-left hover:bg-red-100 flex items-center gap-3 text-sm text-red-600">
-                <X className="h-5 w-5" />
-                <span>Remove from Liked videos</span>
-              </button>
+          <div className="relative">
+            <img
+              src={video.thumbnail || '/api/placeholder/240/135'}
+              alt={video.title || 'Video'}
+              className="w-60 h-40 object-cover rounded-lg"
+            />
+            <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+              {video.duration ? formatDuration(video.duration) : "0:00"}
             </div>
-          </>
-        )}
+          </div>
+        </div>
+
+        {/* Video Info */}
+        <div className="flex-1 min-w-0">
+          <h3
+            className="font-medium w-fit text-base text-gray-900 mb-1 cursor-pointer hover:text-gray-700 line-clamp-2"
+            onClick={handleVideoClick}
+          >
+            {video.title || 'Untitled Video'}
+          </h3>
+          <p
+            className="text-sm text-gray-600 mb-1 cursor-pointer w-fit hover:text-red-600"
+            onClick={handleChannelClick}
+          >
+            {video.owner?.fullName || video.owner?.username || "Unknown Channel"}
+          </p>
+          <div className="flex items-center text-sm text-gray-600">
+            <span>
+              {video.views ? formatViews(video.views) : "0 views"}
+            </span>
+            <span className="mx-1">•</span>
+            <span>Liked {formatTimeAgo(likedVideo.createdAt)}</span>
+          </div>
+        </div>
+
+        {/* Menu Button */}
+        <div className="relative flex-shrink-0 flex">
+          <button
+            onClick={() => setActiveMenu(!activeMenu)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-opacity"
+          >
+            <MoreVertical className="h-5 w-5 text-gray-700" />
+          </button>
+
+          {/* Desktop Dropdown Menu */}
+          {activeMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setActiveMenu(false)}
+              ></div>
+              <div className="absolute right-0 top-10 z-20 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
+                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
+                  <ListPlus className="h-5 w-5" />
+                  <span>Add to queue</span>
+                </button>
+                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
+                  <Clock className="h-5 w-5" />
+                  <span>Save to Watch later</span>
+                </button>
+                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
+                  <Bookmark className="h-5 w-5" />
+                  <span>Save to playlist</span>
+                </button>
+                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
+                  <Download className="h-5 w-5" />
+                  <span>Download</span>
+                </button>
+                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
+                  <Share2 className="h-5 w-5" />
+                  <span>Share</span>
+                </button>
+                <button className="w-full px-4 py-2.5 text-left hover:bg-red-100 flex items-center gap-3 text-sm text-red-600">
+                  <X className="h-5 w-5" />
+                  <span>Remove from Liked videos</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

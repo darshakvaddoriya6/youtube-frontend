@@ -23,7 +23,7 @@ const FeedbackPage = () => {
   ]
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
         <div className="flex items-center mb-8">
           <Flag className="h-6 w-6 mr-3" />
           <h1 className="text-2xl font-bold">Send Feedback</h1>
