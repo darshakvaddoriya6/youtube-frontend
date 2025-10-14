@@ -11,6 +11,7 @@ import {
   RecommendedVideos
 } from '@/components/watch'
 import { useVideoData } from '@/hooks/useVideoData'
+import { VideoPlayerSkeleton, CommentsSkeleton, VideoCardSkeleton } from '@/components/skeletons'
 
 export default function WatchPage() {
   const { id: videoId } = useParams()
@@ -22,6 +23,7 @@ export default function WatchPage() {
     comments,
     currentUser,
     error,
+    loading,
     isSubscribed,
     subscriberCount,
     isLiked,
@@ -71,6 +73,36 @@ export default function WatchPage() {
     } catch (error) {
       console.error('Error deleting comment:', error)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-3 lg:p-6 max-w-6xl mx-auto">
+        {/* Mobile Layout Skeleton */}
+        <div className="lg:hidden">
+          <VideoPlayerSkeleton />
+          <CommentsSkeleton />
+          <div className="mt-6">
+            <div className="space-y-3">
+              <VideoCardSkeleton variant="recommended" count={5} />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Layout Skeleton */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8">
+            <VideoPlayerSkeleton />
+            <CommentsSkeleton />
+          </div>
+          <div className="lg:col-span-4">
+            <div className="space-y-3">
+              <VideoCardSkeleton variant="recommended" count={8} />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (error || !video) {
@@ -136,7 +168,7 @@ export default function WatchPage() {
 
         {/* Recommended Videos */}
         <div className="mt-6">
-          <RecommendedVideos videos={recommended} />
+          <RecommendedVideos videos={recommended} loading={loading} />
         </div>
       </div>
 
@@ -192,7 +224,7 @@ export default function WatchPage() {
         </div>
 
         <div className="lg:col-span-4">
-          <RecommendedVideos videos={recommended} />
+          <RecommendedVideos videos={recommended} loading={loading} />
         </div>
       </div>
     </div>

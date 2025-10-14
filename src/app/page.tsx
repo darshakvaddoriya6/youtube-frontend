@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Video } from '@/types'
 import api, { publicApi } from '@/lib/api'
+import { VideoCardSkeleton } from '@/components/skeletons'
 
 export default function HomePage() {
   const [videos, setVideos] = useState<Video[]>([])
@@ -125,10 +126,11 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading videos...</p>
+      <div className="p-3 lg:p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            <VideoCardSkeleton variant="grid" count={12} />
+          </div>
         </div>
       </div>
     )

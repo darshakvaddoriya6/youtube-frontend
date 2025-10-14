@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Video } from '@/types'
 import api from '@/lib/api'
+import { VideoCardSkeleton } from '@/components/skeletons'
 
 export default function SearchPage() {
   const [videos, setVideos] = useState<Video[]>([])
@@ -97,10 +98,15 @@ export default function SearchPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Searching videos...</p>
+      <div className="p-3 lg:p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-4 lg:mb-6">
+            <div className="h-6 lg:h-8 bg-gray-200 rounded w-64 mb-2 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+          </div>
+          <div className="space-y-3 lg:space-y-4">
+            <VideoCardSkeleton variant="list" count={6} />
+          </div>
         </div>
       </div>
     )

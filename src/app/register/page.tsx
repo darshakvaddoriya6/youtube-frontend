@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
-import { Upload, User, Image } from 'lucide-react'
+import { Upload, User, Image, Check, X } from 'lucide-react'
 
 interface FormDataState {
   username: string
@@ -28,6 +28,23 @@ export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
   const { register } = useAuth()
+
+  // Password strength validation
+  const passwordStrength = useMemo(() => {
+    const password = formData.password
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    }
+
+    const score = Object.values(checks).filter(Boolean).length
+    const isStrong = score >= 4 && checks.length
+
+    return { checks, score, isStrong }
+  }, [formData.password])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -70,7 +87,7 @@ export default function RegisterPage() {
         formDataToSend.append('avatar', formData.avatar)
       }
 
-      if (formData.coverImage &&  formData.coverImage instanceof File) {
+      if (formData.coverImage && formData.coverImage instanceof File) {
         formDataToSend.append('coverImage', formData.coverImage)
       }
 
@@ -155,7 +172,12 @@ export default function RegisterPage() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className={`appearance-none rounded-none relative block w-full px-3 py-2 border placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm ${formData.password && !passwordStrength.isStrong
+                    ? 'border-red-300'
+                    : formData.password && passwordStrength.isStrong
+                      ? 'border-green-300'
+                      : 'border-gray-300'
+                  }`}
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
@@ -163,10 +185,90 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          {/* Password Strength Indicator */}
+          {formData.password && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Password Requirements:</h4>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  {passwordStrength.checks.length ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <X className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-sm ${passwordStrength.checks.length ? 'text-green-600' : 'text-red-600'}`}>
+                    At least 8 characters
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {passwordStrength.checks.uppercase ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <X className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-sm ${passwordStrength.checks.uppercase ? 'text-green-600' : 'text-red-600'}`}>
+                    One uppercase letter
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {passwordStrength.checks.lowercase ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <X className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-sm ${passwordStrength.checks.lowercase ? 'text-green-600' : 'text-red-600'}`}>
+                    One lowercase letter
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {passwordStrength.checks.number ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <X className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-sm ${passwordStrength.checks.number ? 'text-green-600' : 'text-red-600'}`}>
+                    One number
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {passwordStrength.checks.special ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <X className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-sm ${passwordStrength.checks.special ? 'text-green-600' : 'text-red-600'}`}>
+                    One special character (!@#$%^&*...)
+                  </span>
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="flex items-center space-x-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.score <= 2 ? 'bg-red-500' :
+                          passwordStrength.score <= 3 ? 'bg-yellow-500' :
+                            'bg-green-500'
+                        }`}
+                      style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                    />
+                  </div>
+                  <span className={`text-sm font-medium ${passwordStrength.score <= 2 ? 'text-red-600' :
+                      passwordStrength.score <= 3 ? 'text-yellow-600' :
+                        'text-green-600'
+                    }`}>
+                    {passwordStrength.score <= 2 ? 'Weak' :
+                      passwordStrength.score <= 3 ? 'Medium' :
+                        'Strong'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Avatar Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profile Picture 
+              Profile Picture
             </label>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -206,7 +308,7 @@ export default function RegisterPage() {
           {/* Cover Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cover Image 
+              Cover Image
             </label>
             <div className="space-y-4">
               <div className="relative">
@@ -246,11 +348,16 @@ export default function RegisterPage() {
           <div>
             <button
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              disabled={loading || !passwordStrength.isStrong}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Create account'}
             </button>
+            {formData.password && !passwordStrength.isStrong && (
+              <p className="mt-2 text-sm text-red-600 text-center">
+                Please create a stronger password to continue
+              </p>
+            )}
           </div>
         </form>
       </div>

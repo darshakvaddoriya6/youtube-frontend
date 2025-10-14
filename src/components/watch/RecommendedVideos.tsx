@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { VideoCardSkeleton } from '@/components/skeletons'
 
 interface VideoData {
   _id: string
@@ -25,6 +26,7 @@ interface VideoData {
 
 interface RecommendedVideosProps {
   videos: VideoData[]
+  loading?: boolean
 }
 
 const formatDuration = (seconds: number) => {
@@ -43,11 +45,15 @@ const formatViews = (views: number) => {
   return `${views} views`
 }
 
-export default function RecommendedVideos({ videos }: RecommendedVideosProps) {
+export default function RecommendedVideos({ videos, loading = false }: RecommendedVideosProps) {
   return (
     <div className="w-full">
       <h2 className="text-base lg:text-lg font-semibold mb-4">Recommended</h2>
-      {videos.length === 0 ? (
+      {loading ? (
+        <div className="space-y-3">
+          <VideoCardSkeleton variant="recommended" count={8} />
+        </div>
+      ) : videos.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <p className="text-sm lg:text-base">No videos available</p>
         </div>

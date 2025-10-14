@@ -8,6 +8,7 @@ import { Clock, MoreVertical, Trash2, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { formatDuration, formatViews } from '@/lib/utils'
+import { WatchLaterSkeleton } from '@/components/skeletons'
 
 interface WatchLaterVideo {
   _id: string
@@ -233,19 +234,7 @@ const WatchLater = () => {
     )
   }
   if (loading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
-          <div className="flex items-center mb-8">
-            <Clock className="h-8 w-8 mr-3 text-gray-900" />
-            <h1 className="text-3xl font-semibold text-gray-900">Watch Later</h1>
-          </div>
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          </div>
-        </div>
-      </div>
-    )
+    return <WatchLaterSkeleton count={6} />
   }
 
   return (

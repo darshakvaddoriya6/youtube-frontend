@@ -22,6 +22,8 @@ const Navbar = () => {
   const router = useRouter()
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const menuDropdownRef = useRef<HTMLDivElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,6 +98,10 @@ const Navbar = () => {
   const handleClickOutside = (e: MouseEvent) => {
     if (searchInputRef.current && !searchInputRef.current.contains(e.target as Node)) {
       setShowSuggestions(false)
+    }
+    if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target as Node) && 
+        menuButtonRef.current && !menuButtonRef.current.contains(e.target as Node)) {
+      setIsMenuOpen(false)
     }
   }
 
@@ -284,6 +290,7 @@ const Navbar = () => {
 
               <div className="relative">
                 <button
+                  ref={menuButtonRef}
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full"
                 >
@@ -295,13 +302,21 @@ const Navbar = () => {
                 </button>
 
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-[2147483647] navbar-dropdown">
+                  <div ref={menuDropdownRef} className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-[2147483647] navbar-dropdown">
                     <div className="py-2">
-                      <Link href={`/channel/${user.username}`} className="flex items-center px-4 py-2 hover:bg-gray-100">
+                      <Link
+                        href={`/channel/${user.username}`}
+                        className="flex items-center px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
                         <User className="h-5 w-5 mr-3" />
                         Your Channel
                       </Link>
-                      <Link href="/settings" className="flex items-center px-4 py-2 hover:bg-gray-100">
+                      <Link
+                        href="/settings"
+                        className="flex items-center px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
                         <Settings className="h-5 w-5 mr-3" />
                         Settings
                       </Link>

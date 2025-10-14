@@ -46,6 +46,7 @@ export const useVideoData = (videoId: string | string[]) => {
   const [comments, setComments] = useState<Comment[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [subscriberCount, setSubscriberCount] = useState<number | undefined>(undefined)
   const [isLiked, setIsLiked] = useState(false)
@@ -172,6 +173,7 @@ export const useVideoData = (videoId: string | string[]) => {
 
   const fetchVideo = async () => {
     try {
+      setLoading(true)
       const response = await publicApi.get(`/videos/${videoId}`)
       const v = response.data?.statusCode || response.data
 
@@ -226,6 +228,8 @@ export const useVideoData = (videoId: string | string[]) => {
       setIsLiked(userLikeStatus || false)
     } catch (err: any) {
       setError(err.message || 'Failed to load video')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -767,6 +771,7 @@ export const useVideoData = (videoId: string | string[]) => {
     comments,
     currentUser,
     error,
+    loading,
     isSubscribed,
     subscriberCount,
     isLiked,
