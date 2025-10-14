@@ -21,6 +21,7 @@ export default function WatchPage() {
     video,
     recommended,
     comments,
+    setComments,
     currentUser,
     error,
     loading,
@@ -44,8 +45,9 @@ export default function WatchPage() {
     if (!newComment.trim()) return
     
     try {
-      await addComment(newComment)
+      const result = await addComment(newComment)
       setNewComment('')
+      return result
     } catch (error) {
       console.error('Error adding comment:', error)
     }
@@ -53,7 +55,8 @@ export default function WatchPage() {
 
   const handleAddReply = async (commentId: string, content: string) => {
     try {
-      await addReply(commentId, content)
+      const result = await addReply(commentId, content)
+      return result
     } catch (error) {
       console.error('Error adding reply:', error)
     }
@@ -164,6 +167,8 @@ export default function WatchPage() {
           onAddReply={handleAddReply}
           onUpdateComment={handleUpdateComment}
           onDeleteComment={handleDeleteComment}
+          videoId={videoId as string}
+          setComments={setComments}
         />
 
         {/* Recommended Videos */}
@@ -220,6 +225,8 @@ export default function WatchPage() {
             onAddReply={handleAddReply}
             onUpdateComment={handleUpdateComment}
             onDeleteComment={handleDeleteComment}
+            videoId={videoId as string}
+            setComments={setComments}
           />
         </div>
 

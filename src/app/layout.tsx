@@ -6,6 +6,8 @@ import { Toaster } from 'react-hot-toast'
 import Navbar from '@/components/Navbar'
 import Sidebar from '@/components/Sidebar'
 import { SidebarProvider } from '@/contexts/SidebarContext'
+import { SocketProvider } from '@/contexts/SocketContext'
+import SocketStatus from '@/components/SocketStatus'
 import LayoutClient from './LayoutClient'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,14 +22,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <SidebarProvider>
-            <div className="min-h-screen bg-white">
-              <Navbar />
-              <Sidebar />
-              <LayoutClient>{children}</LayoutClient>
-            </div>
-            <Toaster />
-          </SidebarProvider>
+          <SocketProvider>
+            <SidebarProvider>
+              <div className="min-h-screen bg-white">
+                <Navbar />
+                <Sidebar />
+                <SocketStatus />
+                <LayoutClient>{children}</LayoutClient>
+              </div>
+              <Toaster />
+            </SidebarProvider>
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>

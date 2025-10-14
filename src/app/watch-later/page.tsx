@@ -50,9 +50,7 @@ const WatchLater = () => {
       let backendVideos: WatchLaterVideo[] = []
       try {
         const response = await watchLaterApi.getWatchLater()
-        console.log('Backend API response:', response.data)
         backendVideos = response.data.data.watchLater || []
-        console.log('Backend videos:', backendVideos)
       } catch (error) {
         console.error('Backend API error:', error)
       }
@@ -73,8 +71,6 @@ const WatchLater = () => {
             // Get localStorage watch-later data
             const watchLaterStorage = JSON.parse(localStorage.getItem('watchLaterVideos') || '{}')
             const userKey = currentUser._id || currentUser.username
-            console.log('localStorage watchLaterVideos:', watchLaterStorage)
-            console.log('Current user key:', userKey)
 
             // Find video IDs that are saved locally but not in backend response
             const localVideoIds: string[] = []
@@ -82,13 +78,11 @@ const WatchLater = () => {
               if (key.startsWith(`${userKey}_`) && watchLaterStorage[key]) {
                 const videoId = key.replace(`${userKey}_`, '')
                 const isInBackend = backendVideos.some(v => v._id === videoId)
-                console.log(`Video ${videoId}: localStorage=true, backend=${isInBackend}`)
                 if (!isInBackend) {
                   localVideoIds.push(videoId)
                 }
               }
             })
-            console.log('Local video IDs not in backend:', localVideoIds)
 
 
             // Fetch video details for locally saved videos that aren't in backend

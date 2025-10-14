@@ -467,6 +467,7 @@ export const useVideoData = (videoId: string | string[]) => {
 
         // Add the new comment to the beginning of the list
         setComments(prev => [formattedComment, ...prev])
+        return formattedComment
       }
     } catch (error: any) {
       alert('Failed to add comment. Please try again.')
@@ -582,6 +583,7 @@ export const useVideoData = (videoId: string | string[]) => {
           }
           return comment
         }))
+        return formattedReply
       }
     } catch (error: any) {
       alert('Failed to add reply. Please try again.')
@@ -633,13 +635,19 @@ export const useVideoData = (videoId: string | string[]) => {
   }
 
   const deleteComment = async (commentId: string) => {
-    if (!currentUser) return
+    if (!currentUser) {
+      console.error('No current user for delete operation')
+      return
+    }
 
     try {
-      await api.delete(`/comments/c/${commentId}`)
+      console.log('Making DELETE request to:', `/comments/c/${commentId}`)
+      const response = await api.delete(`/comments/c/${commentId}`)
+      console.log('Delete response:', response.data)
 
       // Remove the comment from the UI
       setComments(prev => {
+        console.log('Removing comment from UI, current comments:', prev.length)
         // Helper function to remove comment recursively
         const removeComment = (comments: Comment[]): Comment[] => {
           return comments
@@ -650,10 +658,14 @@ export const useVideoData = (videoId: string | string[]) => {
             }))
         }
 
-        return removeComment(prev)
+        const newComments = removeComment(prev)
+        console.log('Comments after removal:', newComments.length)
+        return newComments
       })
     } catch (error: any) {
-      alert('Failed to delete comment. Please try again.')
+      console.error('Delete comment error:', error)
+      console.error('Error response:', error.response?.data)
+      alert(`Failed to delete comment: ${error.response?.data?.message || error.message}`)
     }
   }
 
@@ -769,6 +781,7 @@ export const useVideoData = (videoId: string | string[]) => {
     video,
     recommended,
     comments,
+    setComments,
     currentUser,
     error,
     loading,

@@ -123,8 +123,6 @@ export function useChannelData(username: string) {
       }
       // If no token, just continue to video without adding to history
     } catch (err: any) {
-      // Silently handle errors - don't redirect to login for video watching
-      console.log('Could not add to watch history:', err.message)
     }
   }
 

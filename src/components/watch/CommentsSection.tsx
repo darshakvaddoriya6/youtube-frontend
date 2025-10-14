@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ThumbsUp, Trash2, Edit2 } from 'lucide-react'
+import { useSocket } from '@/contexts/SocketContext'
 
 interface Comment {
   _id: string
@@ -24,11 +25,13 @@ interface CommentsSectionProps {
   currentUser: any
   newComment: string
   setNewComment: (comment: string) => void
-  onAddComment: () => Promise<void>
+  onAddComment: () => Promise<Comment | undefined>
   onToggleCommentLike: (commentId: string, commentOwnerId: string) => Promise<void>
-  onAddReply: (commentId: string, content: string) => Promise<void>
+  onAddReply: (commentId: string, content: string) => Promise<Comment | undefined>
   onUpdateComment: (commentId: string, content: string) => Promise<void>
   onDeleteComment: (commentId: string) => Promise<void>
+  videoId: string
+  setComments: (comments: Comment[] | ((prev: Comment[]) => Comment[])) => void
 }
 
 export default function CommentsSection({
@@ -40,8 +43,11 @@ export default function CommentsSection({
   onToggleCommentLike,
   onAddReply,
   onUpdateComment,
-  onDeleteComment
+  onDeleteComment,
+  videoId,
+  setComments
 }: CommentsSectionProps) {
+  const { socket, joinVideoRoom, leaveVideoRoom } = useSocket()
   const [visibleComments, setVisibleComments] = useState(5)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
@@ -51,6 +57,113 @@ export default function CommentsSection({
   const [editContent, setEditContent] = useState('')
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false)
   const [visibleReplies, setVisibleReplies] = useState<{ [key: string]: number }>({})
+
+  // Socket event handlers
+  useEffect(() => {
+    if (!socket || !videoId) return
+
+    // Join video room when component mounts
+    joinVideoRoom(videoId)
+
+    // Listen for real-time comment events
+    const handleCommentAdded = (newComment: Comment) => {
+      // Only add if comment doesn't already exist (avoid duplicates)
+      setComments(prev => {
+        const exists = prev.some(comment => comment._id === newComment._id)
+        if (exists) return prev
+        return [newComment, ...prev]
+      })
+    }
+
+    const handleReplyAdded = (data: { parentCommentId: string; reply: Comment }) => {
+      setComments(prev => prev.map(comment => {
+        if (comment._id === data.parentCommentId) {
+          // Check if reply already exists to avoid duplicates
+          const replyExists = comment.replies?.some(reply => reply._id === data.reply._id)
+          if (replyExists) return comment
+          
+          return {
+            ...comment,
+            replies: [data.reply, ...(comment.replies || [])]
+          }
+        }
+        return comment
+      }))
+    }
+
+    const handleCommentLikeUpdated = (data: { commentId: string; likesCount: number; isLiked: boolean }) => {
+      setComments(prev => prev.map(comment => {
+        if (comment._id === data.commentId) {
+          return {
+            ...comment,
+            likesCount: data.likesCount,
+            isLiked: data.isLiked
+          }
+        }
+        // Check replies too
+        if (comment.replies) {
+          const updatedReplies = comment.replies.map(reply => {
+            if (reply._id === data.commentId) {
+              return {
+                ...reply,
+                likesCount: data.likesCount,
+                isLiked: data.isLiked
+              }
+            }
+            return reply
+          })
+          return { ...comment, replies: updatedReplies }
+        }
+        return comment
+      }))
+    }
+
+    const handleCommentUpdated = (data: { commentId: string; content: string }) => {
+      setComments(prev => prev.map(comment => {
+        if (comment._id === data.commentId) {
+          return { ...comment, content: data.content }
+        }
+        // Check replies too
+        if (comment.replies) {
+          const updatedReplies = comment.replies.map(reply => {
+            if (reply._id === data.commentId) {
+              return { ...reply, content: data.content }
+            }
+            return reply
+          })
+          return { ...comment, replies: updatedReplies }
+        }
+        return comment
+      }))
+    }
+
+    const handleCommentRemoved = (data: { commentId: string }) => {
+      setComments(prev => {
+        // Remove main comment
+        const filteredComments = prev.filter(comment => comment._id !== data.commentId)
+        // Remove from replies
+        return filteredComments.map(comment => ({
+          ...comment,
+          replies: comment.replies?.filter(reply => reply._id !== data.commentId) || []
+        }))
+      })
+    }
+
+    socket.on('comment-added', handleCommentAdded)
+    socket.on('reply-added', handleReplyAdded)
+    socket.on('comment-like-updated', handleCommentLikeUpdated)
+    socket.on('comment-updated', handleCommentUpdated)
+    socket.on('comment-removed', handleCommentRemoved)
+
+    return () => {
+      socket.off('comment-added', handleCommentAdded)
+      socket.off('reply-added', handleReplyAdded)
+      socket.off('comment-like-updated', handleCommentLikeUpdated)
+      socket.off('comment-updated', handleCommentUpdated)
+      socket.off('comment-removed', handleCommentRemoved)
+      leaveVideoRoom(videoId)
+    }
+  }, [socket, videoId, joinVideoRoom, leaveVideoRoom, setComments])
 
   const showMoreReplies = (commentId: string) => {
     setVisibleReplies(prev => ({
@@ -68,7 +181,14 @@ export default function CommentsSection({
 
     setIsSubmitting(true)
     try {
-      await onAddComment()
+      const result = await onAddComment()
+      // Emit socket event to notify OTHER users (not yourself)
+      if (socket && result) {
+        socket.emit('new-comment', {
+          videoId,
+          comment: result
+        })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -79,9 +199,18 @@ export default function CommentsSection({
 
     setIsSubmittingReply(true)
     try {
-      await onAddReply(commentId, replyContent)
+      const result = await onAddReply(commentId, replyContent)
+      // Emit socket event to notify OTHER users
+      if (socket && result) {
+        socket.emit('new-reply', {
+          videoId,
+          parentCommentId: commentId,
+          reply: result
+        })
+      }
       setReplyContent('')
       setReplyingTo(null)
+      return result
     } finally {
       setIsSubmittingReply(false)
     }
@@ -103,6 +232,14 @@ export default function CommentsSection({
     setIsSubmittingEdit(true)
     try {
       await onUpdateComment(commentId, editContent)
+      // Emit socket event for real-time update
+      if (socket) {
+        socket.emit('comment-edited', {
+          videoId,
+          commentId,
+          content: editContent
+        })
+      }
       setEditContent('')
       setEditingComment(null)
     } finally {
@@ -216,6 +353,8 @@ export default function CommentsSection({
               isSubmittingEdit={isSubmittingEdit}
               visibleReplies={visibleReplies[comment._id] || 2}
               onShowMoreReplies={() => showMoreReplies(comment._id)}
+              videoId={videoId}
+              socket={socket}
             />
           ))}
 
@@ -245,7 +384,7 @@ interface CommentItemProps {
   setReplyingTo: (commentId: string | null) => void
   replyContent: string
   setReplyContent: (content: string) => void
-  onSubmitReply: (commentId: string) => Promise<void>
+  onSubmitReply: (commentId: string) => Promise<Comment | undefined>
   onCancelReply: () => void
   isSubmittingReply: boolean
   editingComment: string | null
@@ -258,6 +397,8 @@ interface CommentItemProps {
   isReply?: boolean
   visibleReplies?: number
   onShowMoreReplies?: () => void
+  videoId: string
+  socket: any
 }
 
 function CommentItem({
@@ -281,7 +422,9 @@ function CommentItem({
   isSubmittingEdit,
   isReply = false,
   visibleReplies = 2,
-  onShowMoreReplies
+  onShowMoreReplies,
+  videoId,
+  socket
 }: CommentItemProps) {
   const isReplying = replyingTo === comment._id
   const isEditing = editingComment === comment._id
@@ -296,8 +439,29 @@ function CommentItem({
     setIsDeleting(true)
     try {
       await onDeleteComment(comment._id)
+      // Don't emit socket event here - the backend handles it
+    } catch (error) {
+      console.error('Error deleting comment:', error)
+      alert('Failed to delete comment. Please try again.')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleToggleLike = async () => {
+    try {
+      await onToggleCommentLike(comment._id, comment.owner._id)
+      // Emit socket event for real-time update
+      if (socket) {
+        socket.emit('comment-liked', {
+          videoId,
+          commentId: comment._id,
+          likesCount: comment.isLiked ? (comment.likesCount || 0) - 1 : (comment.likesCount || 0) + 1,
+          isLiked: !comment.isLiked
+        })
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error)
     }
   }
 
@@ -349,7 +513,7 @@ function CommentItem({
         <div className="flex items-center space-x-4">
           {currentUser ? (
             <button
-              onClick={() => onToggleCommentLike(comment._id, comment.owner._id)}
+              onClick={handleToggleLike}
               className={`flex items-center space-x-1 transition-colors ${comment.isLiked
                 ? 'text-black hover:text-black'
                 : 'text-gray-600 hover:text-gray-800'
@@ -453,6 +617,8 @@ function CommentItem({
                 onCancelEdit={onCancelEdit}
                 isSubmittingEdit={isSubmittingEdit}
                 isReply={true}
+                videoId={videoId}
+                socket={socket}
               />
             ))}
 
