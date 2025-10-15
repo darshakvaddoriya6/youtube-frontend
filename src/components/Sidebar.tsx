@@ -4,13 +4,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Play, History, ThumbsUp, Clock, FolderOpen, Settings, HelpCircle, Flag } from 'lucide-react'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { useAuth } from '@/contexts/AuthContext'
-import { SidebarSkeleton } from '@/components/skeletons'
 
 const Sidebar = () => {
   const pathname = usePathname()
   const { isOpen, close } = useSidebar()
-  const { loading } = useAuth()
 
   const menuItems = [
     { href: '/', icon: Home, label: 'Home' },
@@ -31,11 +28,6 @@ const Sidebar = () => {
   ]
 
   const isActive = (href: string) => pathname === href
-
-  // Show skeleton while auth is loading
-  if (loading) {
-    return <SidebarSkeleton isOpen={isOpen} />
-  }
 
   return (
     <>

@@ -11,7 +11,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   // Show content skeleton while auth is loading
   if (loading) {
     return (
-      <div className={`flex mt-16 lg:mt-24 transition-all duration-300 ${isOpen ? 'lg:ml-60' : 'lg:ml-0'}`}>
+      <div className={`flex mt-16 lg:mt-24 ${isOpen ? 'lg:ml-60' : 'lg:ml-[70px]'}`}>
         <main className="flex-1 min-w-0 p-3 lg:p-6">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -24,7 +24,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className={`flex mt-16 lg:mt-24 transition-all duration-300 ${isOpen ? 'lg:ml-60' : 'lg:ml-0'}`}>
+    <div className={`flex mt-16 lg:mt-24 transition-all duration-300 ${isOpen ? 'lg:ml-60' : 'lg:ml-[70px]'}`}>
       <main className="flex-1 min-w-0">{children}</main>
     </div>
   )

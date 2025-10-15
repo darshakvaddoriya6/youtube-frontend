@@ -2,45 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ensure navbar and dropdown appear above all content */
-.navbar-dropdown {
-  z-index: 2147483647 !important;
-}
 
-.navbar {
-  z-index: 2147483646 !important;
-}
 
-/* Line clamp utilities for responsive text truncation */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.line-clamp-3 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-/* Responsive video aspect ratio */
-.aspect-video {
-  aspect-ratio: 16 / 9;
-}
-
-/* Smooth transitions for responsive elements */
-* {
-  transition-property: margin, padding, width, height;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}

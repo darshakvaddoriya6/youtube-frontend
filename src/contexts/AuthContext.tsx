@@ -73,13 +73,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (response.ok) {
           const userData = await response.json()
           setUser(userData.data)
+          localStorage.setItem('user', JSON.stringify(userData.data))
         } else {
           localStorage.removeItem('accessToken')
+          localStorage.removeItem('user')
         }
       }
     } catch (error) {
       console.error('Auth check failed:', error)
       localStorage.removeItem('accessToken')
+      localStorage.removeItem('user')
     } finally {
       setLoading(false)
     }
@@ -102,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (response.ok) {
         const { accessToken, user } = data.data
         localStorage.setItem('accessToken', accessToken)
+        localStorage.setItem('user', JSON.stringify(user))
         setUser(user)
         toast.success('Login successful!')
         router.push('/')
@@ -171,12 +175,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
 
       localStorage.removeItem('accessToken')
+      localStorage.removeItem('user')
       setUser(null)
       toast.success('Logged out successfully')
       router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
       localStorage.removeItem('accessToken')
+      localStorage.removeItem('user')
       setUser(null)
       router.push('/login')
     }

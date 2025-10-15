@@ -8,7 +8,7 @@ import { Search, Menu, Plus, LogOut, Settings, User, X } from 'lucide-react'
 import UploadVideoModal from './UploadVideoModal'
 import { useSidebar } from '@/contexts/SidebarContext'
 import api, { publicApi } from '@/lib/api'
-import { NavbarSkeleton } from '@/components/skeletons'
+import { NavbarSkeleton } from './skeletons'
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -18,8 +18,9 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+  const [isMounted, setIsMounted] = useState(false)
   const { user, logout, loading } = useAuth()
-  const { isOpen: isSidebarOpen, toggle } = useSidebar()
+  const { isOpen: isSidebarOpen, isInitialized, toggle } = useSidebar()
   const router = useRouter()
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -100,8 +101,8 @@ const Navbar = () => {
     if (searchInputRef.current && !searchInputRef.current.contains(e.target as Node)) {
       setShowSuggestions(false)
     }
-    if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target as Node) && 
-        menuButtonRef.current && !menuButtonRef.current.contains(e.target as Node)) {
+    if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target as Node) &&
+      menuButtonRef.current && !menuButtonRef.current.contains(e.target as Node)) {
       setIsMenuOpen(false)
     }
   }
@@ -116,6 +117,7 @@ const Navbar = () => {
   }
 
   useEffect(() => {
+    setIsMounted(true)
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
@@ -125,10 +127,7 @@ const Navbar = () => {
     }
   }, [])
 
-  // Show skeleton while auth is loading
-  if (loading) {
-    return <NavbarSkeleton />
-  }
+
 
   return (
     <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[2147483646] navbar">
@@ -138,8 +137,9 @@ const Navbar = () => {
           <button
             onClick={toggle}
             className="p-2 hover:bg-gray-100 rounded-full"
-            title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            aria-expanded={isSidebarOpen}
+            suppressHydrationWarning
+            title={isMounted && isInitialized ? (isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar') : 'Toggle sidebar'}
+            aria-expanded={isMounted && isInitialized ? isSidebarOpen : undefined}
           >
             <Menu className="h-5 w-5 lg:h-6 lg:w-6" />
           </button>
@@ -284,7 +284,9 @@ const Navbar = () => {
 
         {/* Right - User actions */}
         <div className="flex items-center space-x-2 lg:space-x-4 px-2 lg:px-6">
-          {user ? (
+          {loading ? (
+            <NavbarSkeleton variant="authenticated" />
+          ) : user ? (
             <>
               <button
                 onClick={() => setIsUploadModalOpen(true)}

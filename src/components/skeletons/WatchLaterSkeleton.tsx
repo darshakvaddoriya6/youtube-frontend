@@ -38,10 +38,10 @@ export default function WatchLaterSkeleton({ count = 6 }: WatchLaterSkeletonProp
                       <div className="h-4 bg-gray-200 rounded w-full"></div>
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                     </div>
-                    
+
                     {/* Channel name skeleton */}
                     <div className="h-3 bg-gray-200 rounded w-1/2 mb-1"></div>
-                    
+
                     {/* Views and date skeleton */}
                     <div className="flex items-center space-x-1">
                       <div className="h-3 bg-gray-200 rounded w-16"></div>
@@ -75,10 +75,10 @@ export default function WatchLaterSkeleton({ count = 6 }: WatchLaterSkeletonProp
                     <div className="h-5 bg-gray-200 rounded w-full"></div>
                     <div className="h-5 bg-gray-200 rounded w-2/3"></div>
                   </div>
-                  
+
                   {/* Channel name skeleton */}
                   <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-                  
+
                   {/* Views and date skeleton */}
                   <div className="flex items-center space-x-2">
                     <div className="h-4 bg-gray-200 rounded w-20"></div>
