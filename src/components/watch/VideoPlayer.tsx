@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { getOptimizedVideoUrl } from '@/utils/cloudinary'
 
 interface VideoPlayerProps {
   videoFile: string
@@ -14,6 +15,9 @@ export default function VideoPlayer({ videoFile, thumbnail, title, onTrackView }
   const [retryCount, setRetryCount] = useState(0)
   const [viewTracked, setViewTracked] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  
+  // Get optimized video URL
+  const optimizedVideoUrl = getOptimizedVideoUrl(videoFile)
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     const videoElement = e.target as HTMLVideoElement
@@ -82,7 +86,7 @@ export default function VideoPlayer({ videoFile, thumbnail, title, onTrackView }
     <div>
       <video
         ref={videoRef}
-        src={videoFile}
+        src={optimizedVideoUrl}
         poster={thumbnail}
         controls
         autoPlay
@@ -99,6 +103,10 @@ export default function VideoPlayer({ videoFile, thumbnail, title, onTrackView }
         onTimeUpdate={handleTimeUpdate}
         preload="metadata"
         crossOrigin="anonymous"
+        playsInline
+        muted={false}
+        disablePictureInPicture={false}
+        controlsList="nodownload"
       >
         Your browser does not support the video tag.
       </video>

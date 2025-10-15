@@ -8,6 +8,7 @@ import { Search, Menu, Plus, LogOut, Settings, User, X } from 'lucide-react'
 import UploadVideoModal from './UploadVideoModal'
 import { useSidebar } from '@/contexts/SidebarContext'
 import api, { publicApi } from '@/lib/api'
+import { NavbarSkeleton } from '@/components/skeletons'
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -17,7 +18,7 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
-  const { user, logout } = useAuth()
+  const { user, logout, loading } = useAuth()
   const { isOpen: isSidebarOpen, toggle } = useSidebar()
   const router = useRouter()
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -123,6 +124,11 @@ const Navbar = () => {
       }
     }
   }, [])
+
+  // Show skeleton while auth is loading
+  if (loading) {
+    return <NavbarSkeleton />
+  }
 
   return (
     <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[2147483646] navbar">
