@@ -23,12 +23,20 @@ export default function VideoGrid({ videos, onVideoClick }: VideoGridProps) {
       : views >= 1_000 ? `${(views / 1_000).toFixed(1)}K views`
         : `${views} views`
 
-  const formatDuration = (sec: number) => {
-    const h = Math.floor(sec / 3600)
-    const m = Math.floor((sec % 3600) / 60)
-    const s = sec % 60
-    return h ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` : `${m}:${s.toString().padStart(2, '0')}`
+ const formatDuration = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = Math.floor(seconds % 60)
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`
+  } else {
+    return `${secs}s`
   }
+}
+
 
   return (
     <div className="max-w-6xl mx-auto px-3 lg:px-4 xl:px-8 py-6 lg:py-10">
