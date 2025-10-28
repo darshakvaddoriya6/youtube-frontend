@@ -15,13 +15,9 @@ const UnauthenticatedPrompt = ({
   pageTitle = '',
   pageDescription = '',
   features = [],
-  loading = false
 }: UnauthenticatedPromptProps) => {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+ 
+  
 
 
   return (
