@@ -33,7 +33,6 @@ interface LikedVideoCardProps {
 
 export default function LikedVideoCard({ likedVideo }: LikedVideoCardProps) {
   const router = useRouter()
-  const [activeMenu, setActiveMenu] = useState(false)
   const video = likedVideo.video
 
   if (!video) return null
@@ -140,48 +139,6 @@ const formatDuration = (seconds: number) => {
               <span>Liked {formatTimeAgo(likedVideo.createdAt)}</span>
             </div>
           </div>
-
-          {/* Menu Button */}
-          <div className="relative flex-shrink-0 ml-2">
-            <button
-              onClick={() => setActiveMenu(!activeMenu)}
-              className="p-1 rounded-full hover:bg-gray-100"
-            >
-              <MoreVertical className="h-4 w-4 text-gray-700" />
-            </button>
-
-            {/* Mobile Dropdown Menu */}
-            {activeMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setActiveMenu(false)}
-                ></div>
-                <div className="absolute right-0 top-8 z-20 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
-                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
-                    <ListPlus className="h-4 w-4" />
-                    <span>Add to queue</span>
-                  </button>
-                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
-                    <Clock className="h-4 w-4" />
-                    <span>Save to Watch later</span>
-                  </button>
-                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
-                    <Bookmark className="h-4 w-4" />
-                    <span>Save to playlist</span>
-                  </button>
-                  <button className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-xs">
-                    <Share2 className="h-4 w-4" />
-                    <span>Share</span>
-                  </button>
-                  <button className="w-full px-3 py-2 text-left hover:bg-red-100 flex items-center gap-2 text-xs text-red-600">
-                    <X className="h-4 w-4" />
-                    <span>Remove from Liked videos</span>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
         </div>
       </div>
 
@@ -225,52 +182,6 @@ const formatDuration = (seconds: number) => {
             <span className="mx-1">•</span>
             <span>Liked {formatTimeAgo(likedVideo.createdAt)}</span>
           </div>
-        </div>
-
-        {/* Menu Button */}
-        <div className="relative flex-shrink-0 flex">
-          <button
-            onClick={() => setActiveMenu(!activeMenu)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-opacity"
-          >
-            <MoreVertical className="h-5 w-5 text-gray-700" />
-          </button>
-
-          {/* Desktop Dropdown Menu */}
-          {activeMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setActiveMenu(false)}
-              ></div>
-              <div className="absolute right-0 top-10 z-20 w-64 bg-white rounded-xl shadow-2xl border border-gray-200 py-2">
-                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                  <ListPlus className="h-5 w-5" />
-                  <span>Add to queue</span>
-                </button>
-                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                  <Clock className="h-5 w-5" />
-                  <span>Save to Watch later</span>
-                </button>
-                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                  <Bookmark className="h-5 w-5" />
-                  <span>Save to playlist</span>
-                </button>
-                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                  <Download className="h-5 w-5" />
-                  <span>Download</span>
-                </button>
-                <button className="w-full px-4 py-2.5 text-left hover:bg-gray-100 flex items-center gap-3 text-sm">
-                  <Share2 className="h-5 w-5" />
-                  <span>Share</span>
-                </button>
-                <button className="w-full px-4 py-2.5 text-left hover:bg-red-100 flex items-center gap-3 text-sm text-red-600">
-                  <X className="h-5 w-5" />
-                  <span>Remove from Liked videos</span>
-                </button>
-              </div>
-            </>
-          )}
         </div>
       </div>
     </>

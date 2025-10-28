@@ -1,6 +1,4 @@
-
 'use client'
-
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import UnauthenticatedPrompt from '@/components/UnauthenticatedPrompt'
@@ -12,12 +10,13 @@ import { useSubscriptions } from '@/hooks/useSubscriptions'
 const Subscriptions = () => {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
 
-  // Real authentication check
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('accessToken')
       setIsAuthenticated(!!token)
+      setAuthLoading(false)
     }
 
     checkAuth()
@@ -33,6 +32,11 @@ const Subscriptions = () => {
 
   const handleChannelClick = (username: string) => {
     router.push(`/channel/${username}`)
+  }
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return <LoadingState />
   }
 
   // Show login prompt if not authenticated

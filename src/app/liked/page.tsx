@@ -1,30 +1,31 @@
 'use client'
-
-import { Loader2 } from 'lucide-react'
-import dynamic from 'next/dynamic'
 import { useLikedVideos } from '@/hooks/useLikedVideos'
 import LikedVideosHeader from '@/components/liked/LikedVideosHeader'
 import LikedVideosList from '@/components/liked/LikedVideosList'
 import LoadingState from '@/components/liked/LoadingState'
 import ErrorState from '@/components/liked/ErrorState'
+import UnauthenticatedPrompt from '@/components/UnauthenticatedPrompt'
+import { useState, useEffect } from 'react'
 
-// Dynamically import the component to avoid SSR issues
-const UnauthenticatedPrompt = dynamic(() => import('@/components/UnauthenticatedPrompt'), {
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center py-12">
-    <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-  </div>
-})
 
 export default function LikedVideosPage() {
-  const { isAuthenticated, likedVideos, loading, error, retryFetch } = useLikedVideos()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
 
-  if (loading) {
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('accessToken')
+      setIsAuthenticated(!!token)
+      setAuthLoading(false)
+    }
+
+    checkAuth()
+  }, [])
+
+  const { likedVideos, loading, error, retryFetch } = useLikedVideos(isAuthenticated)
+
+  if (authLoading) {
     return <LoadingState />
-  }
-
-  if (error) {
-    return <ErrorState error={error} onRetry={retryFetch} />
   }
 
   if (!isAuthenticated) {
@@ -47,8 +48,16 @@ export default function LikedVideosPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
-        <LikedVideosHeader />
+        {loading && <LoadingState />}
+        {error && <ErrorState error={error} onRetry={retryFetch} />}
+
+        {!loading && !error && (
+          <LikedVideosHeader />
+        )}
+        {!loading && !error && (
         <LikedVideosList likedVideos={likedVideos} />
+        )}
+
       </div>
     </div>
   )

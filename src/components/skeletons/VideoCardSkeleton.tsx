@@ -10,12 +10,12 @@ export default function VideoCardSkeleton({ variant = 'grid', count = 1 }: Video
     return (
       <>
         {skeletons.map((index) => (
-          <div key={index} className="group cursor-pointer">
+          <div key={index} className="group cursor-pointer animate-pulse">
             {/* Thumbnail skeleton */}
             <div className="block">
-              <div className="relative">
-                <div className="w-full h-60 bg-gray-200 rounded-lg animate-pulse"></div>
-                <div className="absolute bottom-2 right-2 bg-gray-300 text-transparent text-xs px-2 py-1 rounded animate-pulse">
+              <div className="relative overflow-hidden rounded-lg bg-gray-200">
+                <div className="w-full h-60 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+                <div className="absolute bottom-2 right-2 bg-gray-300/80 backdrop-blur-sm text-transparent text-xs px-2 py-1 rounded">
                   0:00
                 </div>
               </div>
@@ -26,26 +26,24 @@ export default function VideoCardSkeleton({ variant = 'grid', count = 1 }: Video
               <div className="flex items-start space-x-3">
                 {/* Avatar skeleton */}
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-full"></div>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  {/* Title skeleton - matches text-sm lg:text-base */}
-                  <div className="block">
-                    <div className="space-y-1">
-                      <div className="h-4 lg:h-5 bg-gray-200 rounded w-full animate-pulse"></div>
-                      <div className="h-4 lg:h-5 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                    </div>
+                <div className="flex-1 min-w-0 space-y-2">
+                  {/* Title skeleton */}
+                  <div className="space-y-1.5">
+                    <div className="h-4 lg:h-5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md"></div>
+                    <div className="h-4 lg:h-5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-3/4"></div>
                   </div>
 
-                  {/* Channel name skeleton - matches text-xs lg:text-sm */}
-                  <div className="h-3 lg:h-4 bg-gray-200 rounded w-1/2 mt-1 animate-pulse"></div>
+                  {/* Channel name skeleton */}
+                  <div className="h-3 lg:h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-1/2"></div>
 
-                  {/* Views and date skeleton - matches text-xs lg:text-sm */}
-                  <div className="flex items-center mt-1">
-                    <div className="h-3 lg:h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
-                    <div className="mx-1 w-1 h-1 bg-gray-200 rounded-full animate-pulse"></div>
-                    <div className="h-3 lg:h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                  {/* Views and date skeleton */}
+                  <div className="flex items-center space-x-2">
+                    <div className="h-3 lg:h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-16"></div>
+                    <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                    <div className="h-3 lg:h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-20"></div>
                   </div>
                 </div>
               </div>
@@ -62,29 +60,29 @@ export default function VideoCardSkeleton({ variant = 'grid', count = 1 }: Video
         {skeletons.map((index) => (
           <div key={index} className="flex items-start gap-4 group animate-pulse">
             {/* Thumbnail skeleton */}
-            <div className="relative flex-shrink-0 w-60">
-              <div className="w-60 h-40 bg-gray-200 rounded-lg"></div>
-              <div className="absolute bottom-2 right-2 bg-gray-300 text-transparent text-xs px-2 py-1 rounded">
+            <div className="relative flex-shrink-0 w-60 overflow-hidden rounded-lg bg-gray-200">
+              <div className="w-60 h-40 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+              <div className="absolute bottom-2 right-2 bg-gray-300/80 backdrop-blur-sm text-transparent text-xs px-2 py-1 rounded">
                 0:00
               </div>
             </div>
 
             {/* Video info skeleton */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 space-y-2">
               {/* Title skeleton */}
-              <div className="space-y-2 mb-2">
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div className="space-y-1.5">
+                <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md"></div>
+                <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-2/3"></div>
               </div>
 
               {/* Channel name skeleton */}
-              <div className="h-3 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-1/3"></div>
 
               {/* Views and date skeleton */}
-              <div className="flex items-center space-x-1">
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
-                <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
-                <div className="h-3 bg-gray-200 rounded w-20"></div>
+              <div className="flex items-center space-x-2">
+                <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-16"></div>
+                <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-20"></div>
               </div>
             </div>
           </div>
@@ -99,29 +97,29 @@ export default function VideoCardSkeleton({ variant = 'grid', count = 1 }: Video
         {skeletons.map((index) => (
           <div key={index} className="flex gap-2 lg:gap-3 p-2 animate-pulse">
             {/* Thumbnail skeleton */}
-            <div className="relative flex-shrink-0">
-              <div className="w-44 h-24 bg-gray-200 rounded-lg"></div>
-              <div className="absolute bottom-1 right-1 bg-gray-300 text-transparent text-xs px-1.5 py-0.5 rounded">
+            <div className="relative flex-shrink-0 overflow-hidden rounded-lg bg-gray-200">
+              <div className="w-44 h-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
+              <div className="absolute bottom-1 right-1 bg-gray-300/80 backdrop-blur-sm text-transparent text-xs px-1.5 py-0.5 rounded">
                 0:00
               </div>
             </div>
 
             {/* Video info skeleton */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 space-y-1.5">
               {/* Title skeleton */}
-              <div className="space-y-1 mb-2">
-                <div className="h-3 bg-gray-200 rounded w-full"></div>
-                <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+              <div className="space-y-1">
+                <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md"></div>
+                <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-3/4"></div>
               </div>
 
               {/* Channel name skeleton */}
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-1"></div>
+              <div className="h-2.5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-1/2"></div>
 
               {/* Views and date skeleton */}
-              <div className="flex items-center space-x-1">
-                <div className="h-2 bg-gray-200 rounded w-12"></div>
-                <div className="w-1 h-1 bg-gray-200 rounded-full"></div>
-                <div className="h-2 bg-gray-200 rounded w-16"></div>
+              <div className="flex items-center space-x-1.5">
+                <div className="h-2.5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-12"></div>
+                <div className="w-0.5 h-0.5 bg-gray-300 rounded-full"></div>
+                <div className="h-2.5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-16"></div>
               </div>
             </div>
           </div>

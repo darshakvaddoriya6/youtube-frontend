@@ -5,21 +5,24 @@ import { Lock, LogIn, UserPlus, Youtube } from 'lucide-react'
 import Link from 'next/link'
 
 interface UnauthenticatedPromptProps {
-  pageTitle: string
-  pageDescription: string
-  features: string[]
+  pageTitle?: string
+  pageDescription?: string
+  features?: string[]
+  loading?: boolean
 }
 
-const UnauthenticatedPrompt = ({ pageTitle, pageDescription, features }: UnauthenticatedPromptProps) => {
+const UnauthenticatedPrompt = ({
+  pageTitle = '',
+  pageDescription = '',
+  features = [],
+  loading = false
+}: UnauthenticatedPromptProps) => {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  if (!mounted) {
-    return null // Prevent hydration mismatch
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

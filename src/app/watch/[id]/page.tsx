@@ -80,7 +80,7 @@ export default function WatchPage() {
 
   if (loading) {
     return (
-      <div className="p-3 lg:p-6 max-w-6xl mx-auto">
+      <div className="p-3 lg:p-6 max-w-6xl mx-auto animate-fadeIn">
         {/* Mobile Layout Skeleton */}
         <div className="lg:hidden">
           <VideoPlayerSkeleton />
@@ -117,7 +117,7 @@ export default function WatchPage() {
   }
 
   return (
-    <div className="p-3 lg:p-6 max-w-6xl mx-auto">
+    <div className="p-3 lg:p-6 max-w-6xl mx-auto animate-fadeIn">
       {/* Mobile Layout: Video -> Info -> Comments -> Recommended */}
       <div className="lg:hidden">
         {/* Video Player */}

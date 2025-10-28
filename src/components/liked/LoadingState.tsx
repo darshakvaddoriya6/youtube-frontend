@@ -8,8 +8,8 @@ export default function LoadingState() {
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
         <div className="flex items-center mb-8">
-          <ThumbsUp className="h-8 w-8 mr-3 text-gray-900" />
-          <h1 className="text-3xl font-semibold text-gray-900">Liked Videos</h1>
+            <div className="h-8 w-8 mr-3 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-7 lg:h-8 bg-gray-200 rounded w-40 animate-pulse"></div>
         </div>
         <div className="space-y-4">
           <VideoCardSkeleton variant="list" count={6} />

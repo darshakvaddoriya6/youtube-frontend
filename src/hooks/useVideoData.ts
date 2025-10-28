@@ -226,6 +226,9 @@ export const useVideoData = (videoId: string | string[]) => {
       }
 
       setIsLiked(userLikeStatus || false)
+      
+      // Add a small delay to ensure smooth transition from skeleton
+      await new Promise(resolve => setTimeout(resolve, 100))
     } catch (err: any) {
       setError(err.message || 'Failed to load video')
     } finally {
@@ -255,7 +258,6 @@ export const useVideoData = (videoId: string | string[]) => {
       }
     } catch (err: any) {
       // Handle error silently
-      console.log('Could not fetch recommended videos:', err.message)
     }
   }
 
@@ -277,7 +279,6 @@ export const useVideoData = (videoId: string | string[]) => {
       }
     } catch (error) {
       // Don't show error to user, just log it
-      console.log('Could not track view:', error)
     }
   }
 
@@ -291,7 +292,6 @@ export const useVideoData = (videoId: string | string[]) => {
       setComments(Array.isArray(commentsData) ? commentsData : [])
     } catch (error: any) {
       setComments([])
-      console.log('Could not fetch comments:', error.message)
     }
   }
 
@@ -333,7 +333,6 @@ export const useVideoData = (videoId: string | string[]) => {
           }
         } catch (error) {
           // If backend fails, keep the stored subscription status (already set in useEffect)
-          console.log('Could not fetch subscription status from backend, using stored value')
         }
 
 
@@ -641,13 +640,10 @@ export const useVideoData = (videoId: string | string[]) => {
     }
 
     try {
-      console.log('Making DELETE request to:', `/comments/c/${commentId}`)
       const response = await api.delete(`/comments/c/${commentId}`)
-      console.log('Delete response:', response.data)
 
       // Remove the comment from the UI
       setComments(prev => {
-        console.log('Removing comment from UI, current comments:', prev.length)
         // Helper function to remove comment recursively
         const removeComment = (comments: Comment[]): Comment[] => {
           return comments
@@ -659,7 +655,6 @@ export const useVideoData = (videoId: string | string[]) => {
         }
 
         const newComments = removeComment(prev)
-        console.log('Comments after removal:', newComments.length)
         return newComments
       })
     } catch (error: any) {
@@ -760,7 +755,6 @@ export const useVideoData = (videoId: string | string[]) => {
               setIsSaved(backendIsSaved)
             }
           } catch (error) {
-            console.log('Could not sync watch-later status with backend')
           }
         }
 

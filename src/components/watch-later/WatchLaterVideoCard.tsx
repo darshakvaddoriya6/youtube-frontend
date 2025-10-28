@@ -1,53 +1,67 @@
-import Link from "next/link";
-import { MoreVertical, Trash2, } from "lucide-react";
-import { formatDuration, formatViews } from "@/lib/utils";
-import HistoryItemMenu from "./HistoryItemMenu";
+import { MoreVertical, Trash2, X } from 'lucide-react'
+import Link from 'next/link'
+import { formatDuration, formatViews } from '@/lib/utils'
 
-interface HistoryItemProps {
-  item: any;
-  onVideoClick: (video: any) => void;
-  onDelete: (id: string) => void;
-  deletingId: string | null;
-  activeMenu: string | null;
-  onToggleMenu: (id: string) => void;
-  onCloseMenu: () => void;
+interface WatchLaterVideo {
+  _id: string
+  title: string
+  thumbnail: string
+  duration: number
+  views: number
+  createdAt: string
+  owner: {
+    username: string
+    avatar: string
+    fullName: string
+  }
 }
 
-const HistoryItem = ({
-  item,
+interface WatchLaterVideoCardProps {
+  video: WatchLaterVideo
+  onVideoClick: (video: WatchLaterVideo) => void
+  onRemoveVideo: (videoId: string) => void
+  deletingId: string | null
+  activeMenu: string | null
+  toggleMenu: (id: string) => void
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now.getTime() - date.getTime())
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 1) return '1 day ago'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  return `${Math.floor(diffDays / 30)} months ago`
+}
+
+const WatchLaterVideoCard = ({
+  video,
   onVideoClick,
-  onDelete,
+  onRemoveVideo,
   deletingId,
-  activeMenu,
-  onToggleMenu,
-  onCloseMenu,
-}: HistoryItemProps) => {
-  const video = item.video || item;
-
-  if (!video) return null;
-
+  toggleMenu
+}: WatchLaterVideoCardProps) => {
   return (
-    <>
-      {/* Mobile Layout: Video first, then info below */}
+    <div key={video._id}>
+      {/* Mobile Layout */}
       <div className="lg:hidden">
-        {/* Video Thumbnail */}
         <div
           className="relative cursor-pointer mb-3"
           onClick={() => onVideoClick(video)}
         >
-          <div className="relative">
-            <img
-              src={video.thumbnail}
-              alt={video.title}
-              className="w-full h-60 object-cover rounded-lg"
-            />
-            <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-              {video.duration ? formatDuration(video.duration) : "0:00"}
-            </div>
+          <img
+            src={video.thumbnail}
+            alt={video.title}
+            className="w-full h-60 object-cover rounded-lg"
+          />
+          <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+            {formatDuration(video.duration)}
           </div>
         </div>
 
-        {/* Video Info Below */}
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h3
@@ -69,54 +83,46 @@ const HistoryItem = ({
               </p>
             )}
             <div className="flex items-center text-xs text-gray-600">
-              <span>{video.views ? formatViews(video.views) : "0 views"}</span>
+              <span>{formatViews(video.views)}</span>
+              <span className="mx-1">•</span>
+              <span>Added {formatDate(video.createdAt)}</span>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="relative flex-shrink-0 flex ml-2">
             <button
-              onClick={() => onDelete(item._id)}
-              disabled={deletingId === item._id}
+              onClick={() => onRemoveVideo(video._id)}
+              disabled={deletingId === video._id}
               className="p-1 rounded-full hover:bg-red-100 mr-1"
             >
-              <Trash2 className="h-4 w-4 text-red-600" />
+              <X className="h-4 w-4 text-red-600" />
             </button>
             <button
-              onClick={() => onToggleMenu(item._id)}
+              onClick={() => toggleMenu(video._id)}
               className="p-1 rounded-full hover:bg-gray-100"
             >
               <MoreVertical className="h-4 w-4 text-gray-700" />
             </button>
-
-            <HistoryItemMenu
-              isOpen={activeMenu === item._id}
-              onClose={onCloseMenu}
-            />
           </div>
         </div>
       </div>
 
-      {/* Desktop Layout: Side by side */}
+      {/* Desktop Layout */}
       <div className="hidden lg:flex items-start gap-4 group">
-        {/* Thumbnail */}
         <div
           className="relative flex-shrink-0 cursor-pointer w-60"
           onClick={() => onVideoClick(video)}
         >
-          <div className="relative">
-            <img
-              src={video.thumbnail}
-              alt={video.title}
-              className="w-60 h-40 object-cover rounded-lg"
-            />
-            <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-              {video.duration ? formatDuration(video.duration) : "0:00"}
-            </div>
+          <img
+            src={video.thumbnail}
+            alt={video.title}
+            className="w-60 h-40 object-cover rounded-lg"
+          />
+          <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+            {formatDuration(video.duration)}
           </div>
         </div>
 
-        {/* Video Info */}
         <div className="flex-1 min-w-0">
           <h3
             className="font-medium w-fit text-base text-gray-900 mb-1 cursor-pointer hover:text-gray-700 line-clamp-2"
@@ -137,28 +143,24 @@ const HistoryItem = ({
             </p>
           )}
           <div className="flex items-center text-sm text-gray-600">
-            <span>{video.views ? formatViews(video.views) : "0 views"}</span>
+            <span>{formatViews(video.views)}</span>
+            <span className="mx-2">•</span>
+            <span>Added {formatDate(video.createdAt)}</span>
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="relative flex-shrink-0 flex">
           <button
-            onClick={() => onDelete(item._id)}
-            disabled={deletingId === item._id}
-            className="w-full px-3 py-3 text-left hover:bg-red-100 rounded-full  flex items-center gap-3 text-sm"
+            onClick={() => onRemoveVideo(video._id)}
+            disabled={deletingId === video._id}
+            className="p-2 rounded-full hover:bg-red-100 transition-opacity mr-1"
           >
             <Trash2 className="h-5 w-5 text-red-600" />
           </button>
-
-          <HistoryItemMenu
-            isOpen={activeMenu === item._id}
-            onClose={onCloseMenu}
-          />
         </div>
       </div>
-    </>
-  );
-};
+    </div>
+  )
+}
 
-export default HistoryItem;
+export default WatchLaterVideoCard
