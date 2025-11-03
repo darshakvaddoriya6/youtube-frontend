@@ -79,7 +79,8 @@ const PlaylistGrid: React.FC<PlaylistGridProps> = ({ playlists = [], handleDelet
                   alt={playlist.name}
                   fill
                   className="object-cover"
-                  unoptimized={process.env.NODE_ENV !== 'production'}
+                  // unoptimized={process.env.NODE_ENV !== 'production'}
+                  unoptimized={playlist.thumbnail.includes('cloudinary')}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.onerror = null;
