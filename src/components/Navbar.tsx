@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Search, Menu, Plus, LogOut, Settings, User, X } from 'lucide-react'
 import UploadVideoModal from './UploadVideoModal'
+import CreatePlaylistModal from './CreatePlaylistModal'
 import { useSidebar } from '@/contexts/SidebarContext'
 import api, { publicApi } from '@/lib/api'
 import { NavbarSkeleton } from './skeletons'
@@ -14,6 +15,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isCreatePlaylistModalOpen, setIsCreatePlaylistModalOpen] = useState(false)
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
@@ -126,8 +128,6 @@ const Navbar = () => {
       }
     }
   }, [])
-
-
 
   return (
     <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[2147483646] navbar">
@@ -272,7 +272,7 @@ const Navbar = () => {
                       setShowSuggestions(false)
                       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
                     }}
-                    className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                    className="mt-2 text-sm text-red-600 hover:text-red-800"
                   >
                     Search anyway
                   </button>
@@ -290,10 +290,17 @@ const Navbar = () => {
             <>
               <button
                 onClick={() => setIsUploadModalOpen(true)}
-                className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-4 py-2 hover:bg-gray-100 rounded-full"
+                className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-4 py-2 hover:bg-green-100 rounded-full"
               >
                 <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
                 <span className="text-xs lg:text-sm font-medium hidden lg:inline">Upload video</span>
+              </button>
+              <button
+                onClick={() => setIsCreatePlaylistModalOpen(true)}
+                className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-4 py-2 hover:bg-green-100 rounded-full"
+              >
+                <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
+                <span className="text-xs lg:text-sm font-medium hidden lg:inline">Create playlist</span>
               </button>
 
               <div className="relative">
@@ -351,6 +358,11 @@ const Navbar = () => {
       </div>
 
       <UploadVideoModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
+      <CreatePlaylistModal 
+        isOpen={isCreatePlaylistModalOpen} 
+        onClose={() => setIsCreatePlaylistModalOpen(false)}
+        onPlaylistCreated={() => setIsCreatePlaylistModalOpen(false)}
+      />
     </nav>
   )
 }

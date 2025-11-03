@@ -23,26 +23,27 @@ export default function VideoGrid({ videos, onVideoClick }: VideoGridProps) {
       : views >= 1_000 ? `${(views / 1_000).toFixed(1)}K views`
         : `${views} views`
 
- const formatDuration = (seconds: number) => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const secs = Math.floor(seconds % 60)
 
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${secs}s`
-  } else if (minutes > 0) {
-    return `${minutes}m ${secs}s`
-  } else {
-    return `${secs}s`
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`
+    } else {
+      return `${secs}s`
+    }
   }
-}
 
 
   return (
     <div className="max-w-6xl mx-auto px-3 lg:px-4 xl:px-8 py-6 lg:py-10">
-      <h2 className="text-lg lg:text-2xl font-semibold mb-4 lg:mb-6 flex items-center text-gray-900">
+      {/* <h2 className="text-lg lg:text-2xl font-semibold mb-4 lg:mb-6 flex items-center text-gray-900">
         <Play className="h-5 w-5 lg:h-6 lg:w-6 mr-2 text-red-600" /> Latest Videos
-      </h2>
+      </h2> */}
+      
 
       {videos.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3  gap-4 lg:gap-6">

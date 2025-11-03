@@ -32,6 +32,7 @@ export function useChannelData(username: string) {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [playlists, setPlaylists] = useState<any[]>([])
 
   const fetchChannelData = async () => {
     if (!username) return
@@ -44,6 +45,13 @@ export function useChannelData(username: string) {
       if (res.data?.data) {
         const userData = res.data.data
         setUser(userData)
+        // Fetch user videos and playlists after setting the user
+        if (userData._id) {
+          await Promise.all([
+            fetchUserVideos(userData._id),
+            fatchPlaylists()
+          ]);
+        }
       } else {
         throw new Error('Invalid response structure')
       }
@@ -69,11 +77,32 @@ export function useChannelData(username: string) {
     }
   }
 
+  const fatchPlaylists = async () => {
+    try {
+      if (!user?._id) return;
+      const res = await publicApi.get(`playlist/user/${user._id}`);
+      const playlistsData = res.data?.statusCode || res.data?.data;
+      if (Array.isArray(playlistsData)) {
+        const formattedPlaylists = playlistsData.map(playlist => ({
+          ...playlist,
+          videoCount: playlist.videos?.length || 0,
+          firstVideoId: Array.isArray(playlist.videos) && playlist.videos.length > 0 ? playlist.videos[0] : undefined
+        }));
+        setPlaylists(formattedPlaylists);
+      } else {
+        console.error('Invalid playlists data structure:', res.data);
+        setPlaylists([]);
+      }
+    } catch (error) {
+      console.error('Error fetching playlists:', error);
+      setPlaylists([]);
+    }
+  }
+
   const fetchUserVideos = async (userId: string) => {
     try {
       const res = await publicApi.get(`/dashboard/videos?userId=${userId}`)
 
-      // Handle the actual response structure
       if (res.data?.statusCode && Array.isArray(res.data.statusCode)) {
         const videosData = res.data.statusCode
         setUserVideos(videosData)
@@ -94,11 +123,9 @@ export function useChannelData(username: string) {
     try {
       setIsLoading(true)
 
-      // Call the subscription API
       const response = await api.post(`/subscriptions/c/${user._id}`)
 
       if (response.data) {
-        // Update the user state to reflect the new subscription status
         setUser(prev => prev ? {
           ...prev,
           isSubscribed: !prev.isSubscribed,
@@ -108,7 +135,6 @@ export function useChannelData(username: string) {
         } : null)
       }
     } catch (error) {
-      // You might want to show a toast notification here
     } finally {
       setIsLoading(false)
     }
@@ -116,15 +142,23 @@ export function useChannelData(username: string) {
 
   const handleVideoClick = async (videoId: string) => {
     try {
-      // Check if user is authenticated before trying to add to history
       const token = localStorage.getItem('accessToken')
       if (token) {
         await api.post('/users/history/add', { videoId })
       }
-      // If no token, just continue to video without adding to history
     } catch (err: any) {
     }
   }
+
+  const handleDeletePlaylist = async (playlistId: string) => {
+    try {
+      await api.delete(`/playlist/${playlistId}`)
+      refetch()
+    } catch (error) {
+      console.error('Error deleting playlist:', error)
+    }
+  }
+
 
   useEffect(() => {
     if (username) {
@@ -134,17 +168,38 @@ export function useChannelData(username: string) {
   }, [username])
 
   useEffect(() => {
+    if (user?._id) {
+      fatchPlaylists()
+    }
+  }, [user?._id])
+
+  useEffect(() => {
     if (user?._id) fetchUserVideos(user._id)
   }, [user])
+
+
+  // Function to refetch all channel data
+  const refetch = async () => {
+    if (user?._id) {
+      await Promise.all([
+        fetchChannelData(),
+        fetchUserVideos(user._id),
+        fatchPlaylists()
+      ]);
+    }
+  };
 
   return {
     user,
     userVideos,
+    playlists,
     loading,
     error,
     isLoading,
     currentUser,
     handleSubscribeToggle,
-    handleVideoClick
+    handleVideoClick,
+    handleDeletePlaylist,
+    refetch,
   }
 }

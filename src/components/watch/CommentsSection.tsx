@@ -258,9 +258,6 @@ export default function CommentsSection({
         <h3 className="text-xl font-semibold">
           {comments.length} Comments
         </h3>
-        <button className="text-sm text-gray-600 hover:text-gray-800 transition-colors">
-          Sort by
-        </button>
       </div>
 
       {/* Add Comment */}

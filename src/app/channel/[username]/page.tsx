@@ -1,16 +1,19 @@
 'use client'
 
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useChannelData } from '@/hooks/useChannelData'
 import ChannelHeader from '@/components/channel/ChannelHeader'
 import VideoGrid from '@/components/channel/VideoGrid'
 import LoadingState from '@/components/channel/LoadingState'
 import ErrorState from '@/components/channel/ErrorState'
+import PlaylistGrid from '@/components/channel/PlaylistGrid'
 
 export default function ChannelPage() {
   const params = useParams()
   const username = params?.username as string
 
+  const [activeTab, setActiveTab] = useState<'videos' | 'playlists'>('videos')
   const {
     user,
     userVideos,
@@ -19,8 +22,15 @@ export default function ChannelPage() {
     isLoading,
     currentUser,
     handleSubscribeToggle,
-    handleVideoClick
+    handleVideoClick,
+    handleDeletePlaylist,
+    playlists,
+    refetch: refetchChannelData
   } = useChannelData(username)
+  
+  const handleRefresh = () => {
+    refetchChannelData()
+  }
 
   if (loading) return <LoadingState />
   if (error || !user) return <ErrorState error={error} />
@@ -33,20 +43,51 @@ export default function ChannelPage() {
         isLoading={isLoading}
         onSubscribeToggle={handleSubscribeToggle}
       />
-
-      <div className="flex flex-wrap max-w-6xl mx-auto justify-start gap-4 px-6 py-4">
-        <button className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-blue-600 transition-colors duration-200 font-medium shadow-sm">
-          Customize channel
+      <div className="flex flex-wrap max-w-6xl mx-auto justify-start gap-4 px-8 pt-12">
+        <button 
+          onClick={() => setActiveTab('videos')}
+          className={`px-6 py-2 rounded-xl transition-colors duration-200 font-medium shadow-sm ${
+            activeTab === 'videos' 
+              ? 'bg-red-600 text-white hover:bg-red-700' 
+              : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+          }`}
+        >
+          Latest Videos
         </button>
-        <button className="px-6 py-2 bg-red-600 text-white rounded-full hover:bg-slate-700 transition-colors duration-200 font-medium shadow-sm">
-          Manage videos
+        <button 
+          onClick={() => setActiveTab('playlists')}
+          className={`px-6 py-2 rounded-xl transition-colors duration-200 font-medium shadow-sm ${
+            activeTab === 'playlists' 
+              ? 'bg-red-600 text-white hover:bg-red-700' 
+              : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+          }`}
+        >
+          Playlists
+        </button>
+        <button 
+          onClick={handleRefresh}
+          title="Refresh data"
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl transition-colors duration-200 font-medium shadow-sm bg-gray-100 text-gray-700 hover:bg-gray-200"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
         </button>
       </div>
+      
+      {activeTab === 'videos' ? (
+        <VideoGrid
+          videos={userVideos}
+          onVideoClick={handleVideoClick}
+        />
+      ) : (
+        <PlaylistGrid 
+          playlists={playlists}
+          handleDeletePlaylist={handleDeletePlaylist}
+        />
+      )}
 
-      <VideoGrid
-        videos={userVideos}
-        onVideoClick={handleVideoClick}
-      />
     </div>
   )
 }

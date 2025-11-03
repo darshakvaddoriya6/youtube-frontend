@@ -5,21 +5,25 @@ import UnauthenticatedPrompt from '@/components/UnauthenticatedPrompt'
 
 import { useState, useEffect } from 'react'
 import { FolderOpen, MoreVertical, Play, Plus } from 'lucide-react'
+import LoadingState from '@/components/history/LoadingState'
 
 const Playlists = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
 
-  // Simulate authentication check - in real app this would check auth state
   useEffect(() => {
     const checkAuth = () => {
-      // For demo purposes, assume user is not authenticated
-      // In real app, this would check JWT token, auth state, etc.
-      setIsAuthenticated(false)
+      const token = localStorage.getItem('accessToken');
+      setIsAuthenticated(!!token)
+      setAuthLoading(false)
     }
 
     checkAuth()
   }, [])
 
+  if (authLoading) {
+    return <LoadingState />
+  }
   // Show login prompt if not authenticated
   if (!isAuthenticated) {
     return (
@@ -37,36 +41,6 @@ const Playlists = () => {
       />
     )
   }
-  // Mock data for playlists - in a real app this would come from an API
-  const playlists = [
-    {
-      id: 1,
-      title: 'React Tutorials',
-      description: 'Collection of React learning videos',
-      thumbnail: '/api/placeholder/160/90',
-      videoCount: 12,
-      lastUpdated: '3 days ago',
-      isPublic: true
-    },
-    {
-      id: 2,
-      title: 'Music Favorites',
-      description: 'My favorite music videos',
-      thumbnail: '/api/placeholder/160/90',
-      videoCount: 25,
-      lastUpdated: '1 week ago',
-      isPublic: false
-    },
-    {
-      id: 3,
-      title: 'Tech News',
-      description: 'Latest technology news and updates',
-      thumbnail: '/api/placeholder/160/90',
-      videoCount: 8,
-      lastUpdated: '2 days ago',
-      isPublic: true
-    }
-  ]
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -75,14 +49,10 @@ const Playlists = () => {
             <FolderOpen className="h-6 w-6 mr-3" />
             <h1 className="text-2xl font-bold">Playlists</h1>
           </div>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            <Plus className="h-4 w-4 mr-2" />
-            New Playlist
-          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {playlists.map((playlist) => (
+          {/* {playlists.map((playlist) => (
             <div key={playlist.id} className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
               <div className="relative">
                 <img
@@ -120,16 +90,16 @@ const Playlists = () => {
                 </div>
               </div>
             </div>
-          ))}
+          ))} */}
         </div>
 
-        {playlists.length === 0 && (
+        {/* {playlists.length === 0 && (
           <div className="text-center py-12">
             <FolderOpen className="h-16 w-16 mx-auto text-gray-300 mb-4" />
             <p className="text-gray-500">No playlists yet</p>
             <p className="text-gray-400 text-sm mt-1">Create playlists to organize your favorite videos</p>
           </div>
-        )}
+        )} */}
       </div>
   )
 }
