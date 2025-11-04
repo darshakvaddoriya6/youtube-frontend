@@ -100,12 +100,18 @@ const Navbar = () => {
   }
 
   const handleClickOutside = (e: MouseEvent) => {
+    // Handle search suggestions
     if (searchInputRef.current && !searchInputRef.current.contains(e.target as Node)) {
       setShowSuggestions(false)
     }
-    if (menuDropdownRef.current && !menuDropdownRef.current.contains(e.target as Node) &&
-      menuButtonRef.current && !menuButtonRef.current.contains(e.target as Node)) {
-      setIsMenuOpen(false)
+    
+    // Handle menu
+    const target = e.target as Node;
+    const isMenuButton = menuButtonRef.current?.contains(target);
+    const isMenuContent = menuDropdownRef.current?.contains(target);
+    
+    if (!isMenuButton && !isMenuContent && isMenuOpen) {
+      setIsMenuOpen(false);
     }
   }
 
@@ -120,14 +126,21 @@ const Navbar = () => {
 
   useEffect(() => {
     setIsMounted(true)
-    document.addEventListener('mousedown', handleClickOutside)
+    
+    // Add event listeners
+    const handleDocumentClick = (e: MouseEvent) => {
+      handleClickOutside(e);
+    };
+    
+    document.addEventListener('mousedown', handleDocumentClick);
+    
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('mousedown', handleDocumentClick);
       if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
+        clearTimeout(searchTimeoutRef.current);
       }
-    }
-  }, [])
+    };
+  }, [isMenuOpen]); // Add isMenuOpen as a dependency
 
   return (
     <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[2147483646] navbar">
@@ -306,8 +319,13 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   ref={menuButtonRef}
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMenuOpen(prev => !prev);
+                  }}
                   className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full"
+                  aria-expanded={isMenuOpen}
+                  aria-haspopup="true"
                 >
                   <img
                     src={user.avatar}
@@ -321,21 +339,34 @@ const Navbar = () => {
                     <div className="py-2">
                       <Link
                         href={`/channel/${user.username}`}
-                        className="flex items-center px-4 py-2 hover:bg-gray-100"
-                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMenuOpen(false);
+                        }}
                       >
                         <User className="h-5 w-5 mr-3" />
                         Your Channel
                       </Link>
                       <Link
                         href="/settings"
-                        className="flex items-center px-4 py-2 hover:bg-gray-100"
-                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMenuOpen(false);
+                        }}
                       >
                         <Settings className="h-5 w-5 mr-3" />
                         Settings
                       </Link>
-                      <button onClick={logout} className="flex items-center w-full px-4 py-2 hover:bg-gray-100">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMenuOpen(false);
+                          logout();
+                        }} 
+                        className="flex items-center w-full px-4 py-2 hover:bg-gray-100 text-left"
+                      >
                         <LogOut className="h-5 w-5 mr-3" />
                         Sign Out
                       </button>

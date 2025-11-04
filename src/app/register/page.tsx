@@ -48,9 +48,22 @@ export default function RegisterPage() {
   }, [formData.password])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    
+    // Only allow lowercase letters (a-z) for username
+    if (name === 'username') {
+      const filteredValue = value.toLowerCase().replace(/[^a-z]/g, '')
+      setFormData(prev => ({
+        ...prev,
+        [name]: filteredValue
+      }))
+      return
+    }
+    
+    // For other fields, update normally
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }))
   }
 
@@ -91,20 +104,16 @@ export default function RegisterPage() {
       if (formData.coverImage && formData.coverImage instanceof File) {
         formDataToSend.append('coverImage', formData.coverImage)
       }
-
       await register(formDataToSend)
-      toast.success('Account created successfully!')
     } catch (error) {
-      console.error('Registration failed:', error)
-      toast.error('Registration failed. Please try again.')
+      console.error('Registration error in form:', error)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <> <Toaster position="top-right" containerClassName="mt-10"/>
-     
+    <>  
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>

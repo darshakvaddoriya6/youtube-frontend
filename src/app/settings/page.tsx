@@ -69,7 +69,7 @@ const SettingsPage = () => {
 
   return (
     <>
-      <Toaster position="top-right" containerClassName="mt-10" />
+      <Toaster position="top-right" containerClassName="mt-20" />
       <div className="p-6 max-w-6xl mx-auto">
         <div className="flex items-center mb-8">
           <Settings className="h-6 w-6 mr-3" />
