@@ -88,6 +88,7 @@ export function useChannelData(username: string) {
           videoCount: playlist.videos?.length || 0,
           firstVideoId: Array.isArray(playlist.videos) && playlist.videos.length > 0 ? playlist.videos[0] : undefined
         }));
+        
         setPlaylists(formattedPlaylists);
       } else {
         console.error('Invalid playlists data structure:', res.data);

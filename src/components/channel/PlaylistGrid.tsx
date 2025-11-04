@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MoreVertical, Plus, Trash2, Minus } from "lucide-react"
+import { MoreVertical, Trash2, Cog } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -129,14 +129,12 @@ const PlaylistGrid: React.FC<PlaylistGridProps> = ({ playlists = [], handleDelet
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-44" align="end">
                   <DropdownMenuGroup>
-                    <DropdownMenuItem >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Video
-                    </DropdownMenuItem>
-                    <DropdownMenuItem >
-                      <Minus className="mr-2 h-4 w-4" />
-                      Remove Video
-                    </DropdownMenuItem>
+                    <Link href={`/dashboard/${playlist._id}`} className="w-full">
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Cog className="mr-2 h-4 w-4" />
+                        Manage Playlist
+                      </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem
                       className="text-red-600 focus:text-red-700"
                       onClick={(e) => handleDelete(e, playlist._id)}

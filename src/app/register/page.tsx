@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Upload, User, Image, Check, X } from 'lucide-react'
+import toast, { Toaster } from 'react-hot-toast'
 
 interface FormDataState {
   username: string
@@ -92,15 +93,19 @@ export default function RegisterPage() {
       }
 
       await register(formDataToSend)
+      toast.success('Account created successfully!')
     } catch (error) {
       console.error('Registration failed:', error)
+      toast.error('Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <> <Toaster position="top-right" containerClassName="mt-10"/>
+     
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -362,5 +367,6 @@ export default function RegisterPage() {
         </form>
       </div>
     </div>
+    </>
   )
 }

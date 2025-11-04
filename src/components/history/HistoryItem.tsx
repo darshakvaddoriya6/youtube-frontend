@@ -88,11 +88,6 @@ const HistoryItem = ({
             >
               <MoreVertical className="h-4 w-4 text-gray-700" />
             </button>
-
-            <HistoryItemMenu
-              isOpen={activeMenu === item._id}
-              onClose={onCloseMenu}
-            />
           </div>
         </div>
       </div>
@@ -150,11 +145,6 @@ const HistoryItem = ({
           >
             <Trash2 className="h-5 w-5 text-red-600" />
           </button>
-
-          <HistoryItemMenu
-            isOpen={activeMenu === item._id}
-            onClose={onCloseMenu}
-          />
         </div>
       </div>
     </>

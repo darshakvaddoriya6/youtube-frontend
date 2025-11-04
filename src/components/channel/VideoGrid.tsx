@@ -18,6 +18,7 @@ interface VideoGridProps {
 }
 
 export default function VideoGrid({ videos, onVideoClick }: VideoGridProps) {
+
   const formatViews = (views: number) =>
     views >= 1_000_000 ? `${(views / 1_000_000).toFixed(1)}M views`
       : views >= 1_000 ? `${(views / 1_000).toFixed(1)}K views`
@@ -40,11 +41,6 @@ export default function VideoGrid({ videos, onVideoClick }: VideoGridProps) {
 
   return (
     <div className="max-w-6xl mx-auto px-3 lg:px-4 xl:px-8 py-6 lg:py-10">
-      {/* <h2 className="text-lg lg:text-2xl font-semibold mb-4 lg:mb-6 flex items-center text-gray-900">
-        <Play className="h-5 w-5 lg:h-6 lg:w-6 mr-2 text-red-600" /> Latest Videos
-      </h2> */}
-      
-
       {videos.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3  gap-4 lg:gap-6">
           {videos.map((v) => (
