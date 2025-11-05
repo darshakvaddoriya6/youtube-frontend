@@ -97,4 +97,10 @@ export const watchLaterApi = {
   clearWatchLater: () => api.delete('/users/watch-later/clear'),
 }
 
+// Playlist API functions
+export const playlistApi = {
+  toggleSave: (playlistId: string) => api.post('/users/playlist/toggle', { playlistId }),
+  getSavedPlaylists: () => api.get('/users/playlist/saved'),
+}
+
 export default api

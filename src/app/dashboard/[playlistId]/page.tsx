@@ -47,7 +47,7 @@ export default function PlaylistPage({ params }: PlaylistPageProps) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await publicApi.get(`/playlist/${playlistId}`);
       if (response.data?.statusCode?.videos) {
         const playlistData = response.data.statusCode;
@@ -73,7 +73,7 @@ export default function PlaylistPage({ params }: PlaylistPageProps) {
 
   const handleRemoveFromPlaylist = async (videoId: string) => {
     if (!confirm('Are you sure you want to remove this video from the playlist?')) return
-    
+
     try {
       setDeletingId(videoId)
       await publicApi.patch(`/playlist/remove/${videoId}/${playlistId}`)
@@ -121,14 +121,14 @@ export default function PlaylistPage({ params }: PlaylistPageProps) {
     setIsSaving(true);
     try {
       await Promise.all(
-        Array.from(selectedVideos).map(videoId => 
+        Array.from(selectedVideos).map(videoId =>
           publicApi.patch(`/playlist/add/${videoId}/${playlistId}`)
         )
       );
-      
+
       toast.success('Videos added to playlist successfully!');
       setSelectedVideos(new Set());
-      
+
       await Promise.all([fetchPlaylistVideos(), fetchUserVideos()]);
 
     } catch (err) {
@@ -141,11 +141,13 @@ export default function PlaylistPage({ params }: PlaylistPageProps) {
 
   const playlistVideoIds = new Set(videos.map(v => v._id));
   const availableVideos = userVideos.filter(v => !playlistVideoIds.has(v._id));
+  
+  
 
   return (
     <>
-      <Toaster position="top-right"  containerClassName="mt-20"/>
-      <div className="container mx-auto px-4 py-8">
+      <Toaster position="top-right" containerClassName="mt-20" />
+      <div className="container mx-auto max-w-6xl px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Playlist Management</h1>
           <Link href={`/channel/${user?.username}`}>
@@ -234,13 +236,11 @@ export default function PlaylistPage({ params }: PlaylistPageProps) {
                     <div
                       key={video._id}
                       onClick={() => handleToggleVideoSelection(video._id)}
-                      className={`group flex items-start gap-4 p-3 rounded-lg transition-colors cursor-pointer ${
-                        selectedVideos.has(video._id) ? 'bg-blue-50 border-blue-500' : 'hover:bg-gray-50'
-                      }`}>
-                      <div className="flex items-center justify-center h-full pr-4">
-                        <div className={`w-5 h-5 rounded-sm flex items-center justify-center border-2 transition-all ${
-                          selectedVideos.has(video._id) ? 'bg-blue-600 border-blue-600' : 'border-gray-400'
+                      className={`group flex items-start gap-4 p-3 rounded-lg transition-colors cursor-pointer ${selectedVideos.has(video._id) ? 'bg-blue-50 border-blue-500' : 'hover:bg-gray-50'
                         }`}>
+                      <div className="flex items-center justify-center h-full pr-4">
+                        <div className={`w-5 h-5 rounded-sm flex items-center justify-center border-2 transition-all ${selectedVideos.has(video._id) ? 'bg-blue-600 border-blue-600' : 'border-gray-400'
+                          }`}>
                           {selectedVideos.has(video._id) &&
                             <Check className="h-4 w-4 text-white" />
                           }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { X, Image as ImageIcon } from 'lucide-react'
 import api from '@/lib/api'
-import toast from 'react-hot-toast'
+import toast, { Toaster } from 'react-hot-toast'
 
 interface CreatePlaylistModalProps {
     isOpen: boolean
@@ -78,19 +78,14 @@ const CreatePlaylistModal = ({ isOpen, onClose, onPlaylistCreated }: CreatePlayl
                     'Content-Type': 'multipart/form-data'
                 }
             })
-            toast.success('Playlist created successfully!', {
-                position: 'bottom-right',
-                duration: 3000,
-            })
+            
             resetForm()
             onPlaylistCreated()
             onClose()
+            toast.success('Playlist created successfully!')
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to create playlist')
-            toast.error('Failed to create playlist', {
-                position: 'bottom-right',
-                duration: 3000,
-            })
+            toast.error('Failed to create playlist')
         } finally {
             setIsUploading(false)
         }
@@ -99,7 +94,8 @@ const CreatePlaylistModal = ({ isOpen, onClose, onPlaylistCreated }: CreatePlayl
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000] p-4">
+            <Toaster position="top-right" containerClassName="mt-20" />
             <div className="bg-white rounded-lg w-full max-w-md relative">
                 <div className="flex items-center justify-between p-4 border-b">
                     <h2 className="text-xl font-semibold">Create new playlist</h2>

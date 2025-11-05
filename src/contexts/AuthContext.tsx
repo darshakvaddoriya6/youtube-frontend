@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.error(data.message || 'Login failed')
       }
     } catch (error) {
-      toast.error('Login failed')
+      toast.error('Incorrect email or password')
       console.error('Login error:', error)
     }
   }
@@ -125,11 +125,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       let formData: FormData
 
-      // ✅ If already FormData, use it directly
       if (userData instanceof FormData) {
         formData = userData
       } else {
-        // ✅ Otherwise convert plain object → FormData
         formData = new FormData()
         formData.append('username', userData.username)
         formData.append('email', userData.email)

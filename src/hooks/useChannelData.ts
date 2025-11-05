@@ -152,12 +152,9 @@ export function useChannelData(username: string) {
   }
 
   const handleDeletePlaylist = async (playlistId: string) => {
-    try {
-      await api.delete(`/playlist/${playlistId}`)
-      refetch()
-    } catch (error) {
-      console.error('Error deleting playlist:', error)
-    }
+    const response = await api.delete(`/playlist/${playlistId}`)
+    await refetch()
+    return response.data
   }
 
 

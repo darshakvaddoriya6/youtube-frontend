@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Search, Menu, Plus, LogOut, Settings, User, X } from 'lucide-react'
+import { Search, Menu, Plus, LogOut, Settings, User, X, Bookmark } from 'lucide-react'
 import UploadVideoModal from './UploadVideoModal'
-import CreatePlaylistModal from './channel/CreatePlaylistModal'
 import { useSidebar } from '@/contexts/SidebarContext'
 import api, { publicApi } from '@/lib/api'
 import { NavbarSkeleton } from './skeletons'
@@ -15,7 +14,6 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
-  const [isCreatePlaylistModalOpen, setIsCreatePlaylistModalOpen] = useState(false)
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
@@ -143,7 +141,7 @@ const Navbar = () => {
   }, [isMenuOpen]); // Add isMenuOpen as a dependency
 
   return (
-    <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[2147483646] navbar">
+    <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[999] navbar">
       <div className="flex items-center justify-between">
         {/* Left - Menu + Logo */}
         <div className="flex items-center space-x-2 lg:space-x-4">
@@ -308,13 +306,7 @@ const Navbar = () => {
                 <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
                 <span className="text-xs lg:text-sm font-medium hidden lg:inline">Upload video</span>
               </button>
-              <button
-                onClick={() => setIsCreatePlaylistModalOpen(true)}
-                className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-4 py-2 hover:bg-green-100 rounded-full"
-              >
-                <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
-                <span className="text-xs lg:text-sm font-medium hidden lg:inline">Create playlist</span>
-              </button>
+           
 
               <div className="relative">
                 <button
@@ -359,6 +351,7 @@ const Navbar = () => {
                         <Settings className="h-5 w-5 mr-3" />
                         Settings
                       </Link>
+                     
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
@@ -389,11 +382,7 @@ const Navbar = () => {
       </div>
 
       <UploadVideoModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
-      <CreatePlaylistModal 
-        isOpen={isCreatePlaylistModalOpen} 
-        onClose={() => setIsCreatePlaylistModalOpen(false)}
-        onPlaylistCreated={() => setIsCreatePlaylistModalOpen(false)}
-      />
+      
     </nav>
   )
 }
