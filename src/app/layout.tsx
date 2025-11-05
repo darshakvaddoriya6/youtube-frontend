@@ -28,7 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Navbar />
                 <Sidebar />
                 <SocketStatus />
-                <LayoutClient>{children}<Toaster position="top-right" containerClassName="mt-20" /></LayoutClient>
+                <Toaster position="top-right" containerClassName="mt-20" />
+                <LayoutClient>{children}</LayoutClient>
               </div>
             </SidebarProvider>
           </SocketProvider>

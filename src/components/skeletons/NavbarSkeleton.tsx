@@ -1,42 +1,48 @@
-import React from 'react'
+import React from 'react';
 
 interface NavbarSkeletonProps {
-    variant?: 'authenticated' | 'unauthenticated'
+    variation: 'default' | 'authenticated'
 }
 
-const NavbarSkeleton: React.FC<NavbarSkeletonProps> = ({ variant = 'authenticated' }) => {
+const NavbarSkeleton: React.FC<NavbarSkeletonProps> = ({ variation = 'authenticated' }) => {
     return (
-        <div className="flex items-center space-x-2 lg:space-x-3 animate-pulse">
-            {variant === 'authenticated' && (
-                <>
-                    {/* Upload button skeleton */}
-                    <div className="flex items-center space-x-2 px-3 lg:px-4 py-2 rounded-full bg-gray-100">
-                        <div className="h-4 w-4 lg:h-5 lg:w-5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
-                        <div className="hidden lg:inline h-4 w-16 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
-                    </div>
+        <div className="flex items-center justify-between w-full px-2">
+            {/* Left side - Menu and Logo */}
+            <div className="flex items-center space-x-2 lg:space-x-4">
+                <div className="w-6 h-6 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="w-36 h-6 bg-gray-200 rounded animate-pulse hidden lg:block"></div>
+                <div className="w-6 h-5 bg-gray-200 rounded animate-pulse lg:hidden"></div>
+            </div>
 
-                    {/* Notifications skeleton */}
-                    <div className="p-2 rounded-full hover:bg-gray-100">
-                        <div className="h-5 w-5 lg:h-6 lg:w-6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
+            {/* Center - Search bar */}
+            <div className="flex-1 max-w-2xl mr-4">
+                <div className="flex">
+                    <div className="flex-1 relative">
+                        <div className="w-full h-10 bg-gray-100 rounded-l-full animate-pulse"></div>
                     </div>
+                    <div className="w-16 h-10 bg-gray-200 rounded-r-full animate-pulse"></div>
+                </div>
+            </div>
 
-                    {/* Avatar skeleton */}
-                    <div className="p-1">
-                        <div className="h-7 w-7 lg:h-8 lg:w-8 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-full" />
+            {/* Right side - User actions */}
+            <div className="flex items-center space-x-2 lg:space-x-4 mr-4">
+                {variation === 'authenticated' ? (
+                  <>
+                    <div className="flex items-center space-x-2 px-2 lg:px-4 py-2 rounded-full bg-gray-100 animate-pulse">
+                      <div className="w-4 h-4 rounded-full bg-gray-300"></div>
+                      <div className="hidden lg:block w-12 h-3.5 bg-gray-300 rounded"></div>
                     </div>
-                </>
-            )}
-
-            {variant === 'unauthenticated' && (
-                <>
-                    {/* Sign In button skeleton */}
-                    <div className="px-4 py-2 rounded-full border border-gray-200">
-                        <div className="h-4 w-16 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded" />
-                    </div>
-                </>
-            )}
+                    <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-gray-300 animate-pulse"></div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-8 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="w-[76px] h-8 bg-gray-200 rounded animate-pulse"></div>
+                  </>
+                )}
+            </div>
         </div>
-    )
-}
+    );
+};
 
-export default NavbarSkeleton
+export default NavbarSkeleton;

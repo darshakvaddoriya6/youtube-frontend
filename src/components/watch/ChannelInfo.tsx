@@ -57,10 +57,8 @@ export default function ChannelInfo({
           {owner.fullName}
         </Link>
         <span className="text-sm text-gray-600">
-          {subscriberCount !== undefined
-            ? `${subscriberCount.toLocaleString()} subscriber${subscriberCount === 1 ? '' : 's'}`
-            : 'Subscribers count unavailable'}
-        </span>
+  {`${(subscriberCount || 0).toLocaleString()} subscriber${subscriberCount !== 1 ? 's' : ''}`}
+</span>
       </div>
 
       {/* Subscribe Button with Dropdown - Only show if user is logged in */}

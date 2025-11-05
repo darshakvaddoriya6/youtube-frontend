@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 
 interface Video {
   _id: string
@@ -112,7 +112,6 @@ const PlaylistGrid: React.FC<PlaylistGridProps> = ({ playlists = [], handleDelet
     setIsDeleting(playlistId);
     try {
       await handleDeletePlaylist(playlistId);
-      alert('Playlist deleted successfully');
       toast.success('Playlist deleted successfully');
     } catch (error: any) {
       console.error('Error deleting playlist:', error);
@@ -139,7 +138,6 @@ const PlaylistGrid: React.FC<PlaylistGridProps> = ({ playlists = [], handleDelet
   return (
     
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-3 lg:px-4 xl:px-8 py-6 lg:py-10">
-      <Toaster position="top-right" containerClassName="mt-20" />
       {playlists.map((playlist) => (
         <Link
           key={playlist._id}

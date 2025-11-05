@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Search, Menu, Plus, LogOut, Settings, User, X, Bookmark } from 'lucide-react'
+import { Search, Menu, Plus, LogOut, Settings, User, X } from 'lucide-react'
 import UploadVideoModal from './UploadVideoModal'
 import { useSidebar } from '@/contexts/SidebarContext'
-import api, { publicApi } from '@/lib/api'
-import { NavbarSkeleton } from './skeletons'
+import { publicApi } from '@/lib/api'
+import NavbarSkeleton from './skeletons/NavbarSkeleton'
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -19,42 +19,40 @@ const Navbar = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
   const [isMounted, setIsMounted] = useState(false)
+
   const { user, logout, loading } = useAuth()
   const { isOpen: isSidebarOpen, isInitialized, toggle } = useSidebar()
   const router = useRouter()
+
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const menuDropdownRef = useRef<HTMLDivElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      setShowSuggestions(false)
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-    }
-  }
+  useEffect(() => {
+    setIsMounted(true)
 
-  const handleSearchQueryChange = (value: string) => {
-    setSearchQuery(value)
-    setSelectedSuggestionIndex(-1)
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as Node
 
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
+      if (searchInputRef.current && !searchInputRef.current.contains(target)) {
+        setShowSuggestions(false)
+      }
+      const isMenuButton = menuButtonRef.current?.contains(target)
+      const isMenuContent = menuDropdownRef.current?.contains(target)
+      if (!isMenuButton && !isMenuContent && isMenuOpen) {
+        setIsMenuOpen(false)
+      }
     }
 
-    if (value.trim().length > 0) {
-      setShowSuggestions(true)
-      // Debounce search API call
-      searchTimeoutRef.current = setTimeout(() => {
-        fetchSearchSuggestions(value.trim())
-      }, 300)
-    } else {
-      setShowSuggestions(false)
-      setSearchSuggestions([])
+    document.addEventListener('mousedown', handleDocumentClick)
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick)
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
     }
-  }
+  }, [isMenuOpen])
+
+
 
   const fetchSearchSuggestions = async (query: string) => {
     try {
@@ -62,15 +60,14 @@ const Navbar = () => {
       const response = await publicApi.get(`/videos/search?query=${encodeURIComponent(query)}`)
 
       let videosData = []
-      if (response.data && response.data.statusCode && Array.isArray(response.data.statusCode)) {
+      if (response.data?.statusCode && Array.isArray(response.data.statusCode)) {
         videosData = response.data.statusCode
-      } else if (response.data && Array.isArray(response.data)) {
+      } else if (Array.isArray(response.data)) {
         videosData = response.data
-      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      } else if (response.data?.data && Array.isArray(response.data.data)) {
         videosData = response.data.data
       }
 
-      // Limit to 8 suggestions for better UX
       const suggestions = videosData.slice(0, 8).map((video: any) => ({
         _id: video._id,
         title: video.title,
@@ -91,66 +88,77 @@ const Navbar = () => {
     }
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      setShowSuggestions(false)
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
+  const handleSearchQueryChange = (value: string) => {
+    setSearchQuery(value)
+    setSelectedSuggestionIndex(-1)
+
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+
+    if (value.trim().length > 0) {
+      setShowSuggestions(true)
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchSearchSuggestions(value.trim())
+      }, 300)
+    } else {
+      setShowSuggestions(false)
+      setSearchSuggestions([])
+    }
+  }
+
   const handleSuggestionClick = (suggestion: any) => {
     setSearchQuery(suggestion.title)
     setShowSuggestions(false)
     router.push(`/watch/${suggestion._id}`)
   }
 
-  const handleClickOutside = (e: MouseEvent) => {
-    // Handle search suggestions
-    if (searchInputRef.current && !searchInputRef.current.contains(e.target as Node)) {
-      setShowSuggestions(false)
-    }
-    
-    // Handle menu
-    const target = e.target as Node;
-    const isMenuButton = menuButtonRef.current?.contains(target);
-    const isMenuContent = menuDropdownRef.current?.contains(target);
-    
-    if (!isMenuButton && !isMenuContent && isMenuOpen) {
-      setIsMenuOpen(false);
-    }
-  }
-
   const formatViews = (views: number) => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M`
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`
-    }
+    if (views >= 1_000_000) return `${(views / 1_000_000).toFixed(1)}M`
+    if (views >= 1_000) return `${(views / 1_000).toFixed(1)}K`
     return views.toString()
   }
 
-  useEffect(() => {
-    setIsMounted(true)
-    
-    // Add event listeners
-    const handleDocumentClick = (e: MouseEvent) => {
-      handleClickOutside(e);
-    };
-    
-    document.addEventListener('mousedown', handleDocumentClick);
-    
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentClick);
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [isMenuOpen]); // Add isMenuOpen as a dependency
+  const [skeletonVariant, setSkeletonVariant] = useState<'authenticated' | 'default'>('authenticated');
+  const [isClientSide, setIsClientSide] = useState(false);
 
+  useEffect(() => {
+    // This effect only runs on the client side
+    setIsClientSide(true);
+    const userData = localStorage.getItem('user');
+    // Only update if we have a user, otherwise keep default
+    if (userData) {
+      setSkeletonVariant('authenticated');
+    }
+  }, []);
+
+  // Update variant when user state changes
+  useEffect(() => {
+    setSkeletonVariant(user ? 'authenticated' : 'default');
+  }, [user]);
+
+  // Show skeleton while mounting/loading
+  if (!isMounted || loading || !isClientSide) {
+    return (
+      <nav className="fixed w-full top-0 bg-white px-4 py-3 z-[999] navbar">
+        <NavbarSkeleton variation={skeletonVariant} />
+      </nav>
+    )
+  }
   return (
-    <nav className="fixed w-full top-0 bg-white px-2 lg:px-4 py-3 z-[999] navbar">
+    <nav className="fixed w-full top-0 bg-white px-4 py-3 z-[999]  navbar">
       <div className="flex items-center justify-between">
-        {/* Left - Menu + Logo */}
         <div className="flex items-center space-x-2 lg:space-x-4">
           <button
             onClick={toggle}
             className="p-2 hover:bg-gray-100 rounded-full"
-            suppressHydrationWarning
-            title={isMounted && isInitialized ? (isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar') : 'Toggle sidebar'}
-            aria-expanded={isMounted && isInitialized ? isSidebarOpen : undefined}
+            title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
             <Menu className="h-5 w-5 lg:h-6 lg:w-6" />
           </button>
@@ -161,7 +169,6 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Center - Search */}
         <div className="flex-1 max-w-2xl mx-2 lg:mx-8 relative" ref={searchInputRef}>
           <form onSubmit={handleSearch} className="flex">
             <div className="flex-1 relative">
@@ -183,12 +190,12 @@ const Navbar = () => {
                     setSelectedSuggestionIndex(-1)
                   } else if (e.key === 'ArrowDown') {
                     e.preventDefault()
-                    setSelectedSuggestionIndex(prev =>
+                    setSelectedSuggestionIndex((prev) =>
                       prev < searchSuggestions.length - 1 ? prev + 1 : prev
                     )
                   } else if (e.key === 'ArrowUp') {
                     e.preventDefault()
-                    setSelectedSuggestionIndex(prev => prev > -1 ? prev - 1 : -1)
+                    setSelectedSuggestionIndex((prev) => (prev > -1 ? prev - 1 : -1))
                   }
                 }}
                 onFocus={() => {
@@ -221,7 +228,7 @@ const Navbar = () => {
             </button>
           </form>
 
-          {/* Search Suggestions Dropdown */}
+          {/* Search Suggestions */}
           {showSuggestions && (
             <div className="absolute top-full left-0 right-12 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-[2147483648] max-h-96 overflow-y-auto">
               {isSearching && (
@@ -255,69 +262,32 @@ const Navbar = () => {
                       </div>
                     </button>
                   ))}
-
-                  {searchQuery.trim() && (
-                    <div className="border-t border-gray-200">
-                      <button
-                        onClick={() => {
-                          setShowSuggestions(false)
-                          router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-                        }}
-                        className="w-full flex items-center px-4 py-3 hover:bg-gray-100 text-left"
-                      >
-                        <Search className="h-4 w-4 mr-3 text-gray-400" />
-                        <span className="text-sm text-gray-700">
-                          Search for "{searchQuery}"
-                        </span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {!isSearching && searchSuggestions.length === 0 && searchQuery.trim() && (
-                <div className="p-4 text-center text-gray-500">
-                  <p className="text-sm">No videos found</p>
-                  <button
-                    onClick={() => {
-                      setShowSuggestions(false)
-                      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
-                    }}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800"
-                  >
-                    Search anyway
-                  </button>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Right - User actions */}
         <div className="flex items-center space-x-2 lg:space-x-4 px-2 lg:px-6">
-          {loading ? (
-            <NavbarSkeleton variant="authenticated" />
-          ) : user ? (
+          {user ? (
             <>
               <button
                 onClick={() => setIsUploadModalOpen(true)}
                 className="flex items-center space-x-1 lg:space-x-2 px-2 lg:px-4 py-2 hover:bg-green-100 rounded-full"
               >
                 <Plus className="h-4 w-4 lg:h-5 lg:w-5" />
-                <span className="text-xs lg:text-sm font-medium hidden lg:inline">Upload video</span>
+                <span className="text-xs lg:text-sm font-medium hidden lg:inline">Upload</span>
               </button>
-           
 
               <div className="relative">
                 <button
                   ref={menuButtonRef}
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setIsMenuOpen(prev => !prev);
+                    e.stopPropagation()
+                    setIsMenuOpen((prev) => !prev)
                   }}
-                  className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-full"
+                  className="flex items-center space-x-2 hover:bg-gray-100 rounded-full"
                   aria-expanded={isMenuOpen}
-                  aria-haspopup="true"
                 >
                   <img
                     src={user.avatar}
@@ -327,37 +297,32 @@ const Navbar = () => {
                 </button>
 
                 {isMenuOpen && (
-                  <div ref={menuDropdownRef} className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-[2147483647] navbar-dropdown">
+                  <div
+                    ref={menuDropdownRef}
+                    className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-[2147483647]"
+                  >
                     <div className="py-2">
                       <Link
                         href={`/channel/${user.username}`}
-                        className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsMenuOpen(false);
-                        }}
+                        className="flex items-center px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         <User className="h-5 w-5 mr-3" />
                         Your Channel
                       </Link>
                       <Link
                         href="/settings"
-                        className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsMenuOpen(false);
-                        }}
+                        className="flex items-center px-4 py-2 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         <Settings className="h-5 w-5 mr-3" />
                         Settings
                       </Link>
-                     
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsMenuOpen(false);
-                          logout();
-                        }} 
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false)
+                          logout()
+                        }}
                         className="flex items-center w-full px-4 py-2 hover:bg-gray-100 text-left"
                       >
                         <LogOut className="h-5 w-5 mr-3" />
@@ -369,11 +334,14 @@ const Navbar = () => {
               </div>
             </>
           ) : (
-            <div className="flex items-center space-x-1 lg:space-x-2">
-              <Link href="/login" className="px-2 lg:px-4 py-2 text-xs lg:text-sm text-black hover:bg-blue-50 rounded">
+            <div className="flex items-center space-x-2">
+              <Link href="/login" className="px-3 py-2 text-sm  bg-gray-100 hover:bg-gray-200 rounded">
                 Sign In
               </Link>
-              <Link href="/register" className="px-2 lg:px-4 py-2 text-xs lg:text-sm text-white bg-red-600 hover:bg-red-700 rounded">
+              <Link
+                href="/register"
+                className="px-3 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded"
+              >
                 Sign Up
               </Link>
             </div>
@@ -382,7 +350,6 @@ const Navbar = () => {
       </div>
 
       <UploadVideoModal isOpen={isUploadModalOpen} onClose={() => setIsUploadModalOpen(false)} />
-      
     </nav>
   )
 }
