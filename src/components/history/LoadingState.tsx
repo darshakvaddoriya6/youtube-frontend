@@ -1,4 +1,4 @@
-import { HistorySkeleton } from '@/components/skeletons';
+import { VideoCardSkeleton } from '@/components/skeletons';
 
 const LoadingState = () => {
   return (
@@ -23,7 +23,7 @@ const LoadingState = () => {
               <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md w-32"></div>
 
               {/* History items skeleton */}
-              <HistorySkeleton count={section === 1 ? 3 : section === 2 ? 2 : 1} />
+              <VideoCardSkeleton variant="history" count={section === 1 ? 3 : section === 2 ? 2 : 1} />
             </div>
           ))}
         </div>

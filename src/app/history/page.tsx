@@ -18,7 +18,6 @@ const HistoryPage = () => {
       setIsAuthenticated(!!token);
       setAuthLoading(false)
     };
-
     checkAuth();
   }, []);
 

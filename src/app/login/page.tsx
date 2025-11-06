@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import VideoCardSkeleton from '@/components/skeletons/VideoCardSkeleton'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -11,7 +12,7 @@ export default function LoginPage() {
     password: '',
   })
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, loading: authLoading } = useAuth()
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,8 +36,12 @@ export default function LoginPage() {
   }
   
 
+  if (authLoading) {
+    return <VideoCardSkeleton variant="login" />
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 ">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -112,7 +117,7 @@ export default function LoginPage() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              Sign in
             </button>
           </div>
         </form>

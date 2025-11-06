@@ -20,17 +20,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-white min-h-screen`}>
         <AuthProvider>
           <SocketProvider>
             <SidebarProvider>
-              <div className="min-h-screen bg-white">
-                <Navbar />
-                <Sidebar />
-                <SocketStatus />
-                <Toaster position="top-right" containerClassName="mt-20" />
-                <LayoutClient>{children}</LayoutClient>
-              </div>
+              <Navbar />
+              <Sidebar />
+              <SocketStatus />
+              <Toaster position="top-right" containerClassName="mt-20" />
+              <LayoutClient>{children}</LayoutClient>
             </SidebarProvider>
           </SocketProvider>
         </AuthProvider>

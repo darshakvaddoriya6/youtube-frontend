@@ -58,7 +58,7 @@ const Subscriptions = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="px-3 py-4 lg:p-6 max-w-6xl mx-auto">
         <h1 className="text-lg lg:text-2xl font-bold mb-3 lg:mb-6 text-gray-900 px-1">
           Subscriptions
