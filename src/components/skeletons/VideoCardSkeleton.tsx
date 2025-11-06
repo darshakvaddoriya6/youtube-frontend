@@ -1,7 +1,7 @@
 import Skeleton from "react-loading-skeleton"
 
 interface VideoCardSkeletonProps {
-  variant?: 'grid' | 'history' | 'recommended' | 'login' | 'register'
+  variant?: 'grid' | 'history' | 'recommended' | 'login' | 'register' | 'list'
   count?: number
 }
 
