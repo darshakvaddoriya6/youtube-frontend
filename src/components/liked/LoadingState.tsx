@@ -12,7 +12,7 @@ export default function LoadingState() {
             <div className="h-7 lg:h-8 bg-gray-200 rounded w-40 animate-pulse"></div>
         </div>
         <div className="space-y-4">
-          <VideoCardSkeleton variant="list" count={6} />
+          <VideoCardSkeleton variant="like" count={6} />
         </div>
       </div>
     </div>

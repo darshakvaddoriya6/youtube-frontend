@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Settings, User, Bell, Shield, Palette, Globe, HelpCircle } from 'lucide-react'
-import { publicApi } from '@/lib/api'
+import { publicApi } from '@/lib/api/api'
 import toast, { Toaster } from 'react-hot-toast'
 
 const SettingsPage = () => {

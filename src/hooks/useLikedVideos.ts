@@ -92,10 +92,46 @@ export function useLikedVideos(isAuthenticated: boolean) {
     fetchLikedVideos()
   }, [isAuthenticated])
 
+  const removeLikedVideo = async (videoId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/likes/videos/${videoId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('accessToken')
+          throw new Error('Please login again')
+        }
+        const errorText = await response.text()
+        console.error('API Error Response:', errorText)
+        throw new Error(`Failed to remove liked video (${response.status})`)
+      }
+
+      // Update the local state to remove the deleted video
+      setLikedVideos(prevVideos => prevVideos.filter(video => video._id !== videoId))
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to remove video'
+      setError(errorMessage)
+      console.error('Error removing liked video:', err)
+      throw err // Re-throw to allow handling in the component
+    }
+  }
+
   return {
     likedVideos,
     loading,
     error,
-    retryFetch
+    retryFetch,
+    removeLikedVideo
   }
 }

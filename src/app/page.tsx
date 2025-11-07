@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Video } from '@/types'
-import api, { publicApi } from '@/lib/api'
+import api, { publicApi } from '@/lib/api/api'
 
 export default function HomePage() {
   const [videos, setVideos] = useState<Video[]>([])

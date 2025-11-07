@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import api, { publicApi } from '@/lib/api'
+import api, { publicApi } from '@/lib/api/api'
 
 interface VideoData {
   _id: string

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { watchLaterApi } from '@/lib/api'
+import { watchLaterApi } from '@/lib/api/api'
 
 interface WatchLaterVideo {
   _id: string

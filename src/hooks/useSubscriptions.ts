@@ -1,5 +1,4 @@
 'use client'
-
 import { useState, useEffect } from 'react'
 
 interface SubscriptionChannel {
@@ -27,41 +26,44 @@ export const useSubscriptions = (isAuthenticated: boolean) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
   const [subscribingChannels, setSubscribingChannels] = useState<Set<string>>(new Set())
 
-  const fetchSubscriptions = async () => {
+  const limit = 4 // show 4 per page
+
+  const fetchSubscriptions = async (pageNumber = 1) => {
     try {
       setLoading(true)
       setError(null)
 
       const token = localStorage.getItem('accessToken')
-      // First get current user info to get their ID
       const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/current-user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
-
-      if (!userResponse.ok) {
-        throw new Error('Failed to get user info')
-      }
+      if (!userResponse.ok) throw new Error('Failed to get user info')
 
       const userData = await userResponse.json()
       const subscriberId = userData.data._id
 
-      // Now fetch subscriptions using the user ID
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscriptions/u/${subscriberId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/subscriptions/u/${subscriberId}?page=${pageNumber}&limit=${limit}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      if (!response.ok) throw new Error('Failed to fetch subscriptions')
+      const data: ApiResponse = await response.json()
+      const newSubs = data.statusCode || []
+
+      // ✅ Merge new subscriptions without duplicates
+      setSubscriptions(prev => {
+        const existingIds = new Set(prev.map(sub => sub._id))
+        const unique = newSubs.filter(sub => !existingIds.has(sub._id))
+        return [...prev, ...unique]
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch subscriptions')
-      }
-
-      const data: ApiResponse = await response.json()
-      setSubscriptions(data.statusCode || [])
+      // ✅ Stop when no more data
+      if (newSubs.length < limit) setHasMore(false)
     } catch (error) {
       console.error('Error fetching subscriptions:', error)
       setError(error instanceof Error ? error.message : 'Failed to load subscriptions')
@@ -71,24 +73,17 @@ export const useSubscriptions = (isAuthenticated: boolean) => {
   }
 
   const handleSubscriptionToggle = async (channelId: string) => {
-    if (subscribingChannels.has(channelId)) return // Prevent multiple clicks
-
+    if (subscribingChannels.has(channelId)) return
     setSubscribingChannels(prev => new Set(prev).add(channelId))
 
     try {
       const token = localStorage.getItem('accessToken')
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscriptions/c/${channelId}`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
-
       if (response.ok) {
-        // Refresh subscriptions list
-        fetchSubscriptions()
-      } else {
-        console.error('Failed to toggle subscription')
+        setSubscriptions(prev => prev.filter(s => s.channel._id !== channelId))
       }
     } catch (error) {
       console.error('Error toggling subscription:', error)
@@ -101,14 +96,9 @@ export const useSubscriptions = (isAuthenticated: boolean) => {
     }
   }
 
-  // Fetch subscriptions when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchSubscriptions()
-    } else {
-      setLoading(false)
-    }
-  }, [isAuthenticated])
+    if (isAuthenticated) fetchSubscriptions(page)
+  }, [isAuthenticated, page])
 
   return {
     subscriptions,
@@ -116,6 +106,9 @@ export const useSubscriptions = (isAuthenticated: boolean) => {
     error,
     subscribingChannels,
     handleSubscriptionToggle,
-    refetchSubscriptions: fetchSubscriptions
+    fetchMore: () => {
+      if (hasMore && !loading) setPage(p => p + 1)
+    },
+    hasMore,
   }
 }

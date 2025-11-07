@@ -1,10 +1,8 @@
 'use client'
-
-import { useState } from 'react'
-import { MoreVertical, ListPlus, Clock, Bookmark, Download, Share2, X } from 'lucide-react'
+import { formatDuration, formatViews } from "@/lib/utils"
 import { useRouter } from 'next/navigation'
 
-interface Video {
+export interface Video {
   _id: string
   title: string
   description: string
@@ -20,7 +18,7 @@ interface Video {
   updatedAt: string
 }
 
-interface LikedVideo {
+export interface LikedVideo {
   _id: string
   video: Video
   createdAt: string
@@ -28,71 +26,49 @@ interface LikedVideo {
 }
 
 interface LikedVideoCardProps {
-  likedVideo: LikedVideo
+  item: LikedVideo
+  onVideoClick: (video: Video) => void
+  onRemove?: (id: string) => void
+  removingId?: string | null
+  activeMenu?: string | null
+  onToggleMenu?: (id: string) => void
+  onCloseMenu?: () => void
 }
 
-export default function LikedVideoCard({ likedVideo }: LikedVideoCardProps) {
-  const router = useRouter()
-  const video = likedVideo.video
+export default function LikedVideoCard({
+  item,
+  onVideoClick,
+  onRemove,
+  removingId,
+  activeMenu,
+  onToggleMenu,
+  onCloseMenu,
+}: LikedVideoCardProps) {
+  const video = item.video
 
   if (!video) return null
 
-const formatDuration = (seconds: number) => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${secs}s`
-  } else if (minutes > 0) {
-    return `${minutes}m ${secs}s`
-  } else {
-    return `${secs}s`
+  const handleVideoClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onVideoClick(video)
   }
-}
 
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onRemove?.(item._id)
+  }
 
-  const formatViews = (views: number) => {
-    if (views >= 1000000) {
-      return `${(views / 1000000).toFixed(1)}M views`
-    } else if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K views`
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onToggleMenu?.(item._id)
+  }
+
+  const router = useRouter()
+  const handleChannelClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (video.owner?.username) {
+      router.push(`/channel/${video.owner.username}`)
     }
-    return `${views} views`
-  }
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInMs = now.getTime() - date.getTime()
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
-
-    if (diffInDays === 0) {
-      const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
-      if (diffInHours === 0) {
-        const diffInMinutes = Math.floor(diffInMs / (1000 * 60))
-        return `${diffInMinutes} minutes ago`
-      }
-      return `${diffInHours} hours ago`
-    } else if (diffInDays === 1) {
-      return '1 day ago'
-    } else if (diffInDays < 30) {
-      return `${diffInDays} days ago`
-    } else if (diffInDays < 365) {
-      const diffInMonths = Math.floor(diffInDays / 30)
-      return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`
-    } else {
-      const diffInYears = Math.floor(diffInDays / 365)
-      return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`
-    }
-  }
-
-  const handleVideoClick = () => {
-    router.push(`/watch/${video._id}`)
-  }
-
-  const handleChannelClick = () => {
-    router.push(`/channel/${video.owner?.username}`)
   }
 
   return (
@@ -136,7 +112,6 @@ const formatDuration = (seconds: number) => {
                 {video.views ? formatViews(video.views) : "0 views"}
               </span>
               <span className="mx-1">•</span>
-              <span>Liked {formatTimeAgo(likedVideo.createdAt)}</span>
             </div>
           </div>
         </div>
@@ -179,8 +154,6 @@ const formatDuration = (seconds: number) => {
             <span>
               {video.views ? formatViews(video.views) : "0 views"}
             </span>
-            <span className="mx-1">•</span>
-            <span>Liked {formatTimeAgo(likedVideo.createdAt)}</span>
           </div>
         </div>
       </div>

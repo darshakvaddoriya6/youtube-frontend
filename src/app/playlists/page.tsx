@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { FolderOpen, MoreVertical, Play, Plus, Bookmark, Loader2, Cog, BookmarkCheck, RefreshCw } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import LoadingState from '@/components/history/LoadingState'
-import { playlistApi } from '@/lib/api'
+import { playlistApi } from '@/lib/api/api'
 import Image from 'next/image'
 import Link from 'next/link'
 

@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Video } from '@/types'
-import api from '@/lib/api'
+import api from '@/lib/api/api'
 import { VideoCardSkeleton } from '@/components/skeletons'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function SearchPage() {
+  const {loading : authLoading} = useAuth()
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -99,7 +101,13 @@ const formatDuration = (seconds: number) => {
     return `${views} views`
   }
 
-  if (loading) {
+  if (loading || authLoading) {
+    return (
+        <VideoCardSkeleton variant="search" count={10}/>
+    )
+  }
+
+  if (error) {
     return (
       <div className="p-3 lg:p-6">
         <div className="max-w-6xl mx-auto">
@@ -108,7 +116,7 @@ const formatDuration = (seconds: number) => {
             <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
           </div>
           <div className="space-y-3 lg:space-y-4">
-            <VideoCardSkeleton variant="list" count={6} />
+            <VideoCardSkeleton variant="search"/>
           </div>
         </div>
       </div>

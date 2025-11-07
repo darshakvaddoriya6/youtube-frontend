@@ -2,15 +2,18 @@
 import { useLikedVideos } from '@/hooks/useLikedVideos'
 import LikedVideosHeader from '@/components/liked/LikedVideosHeader'
 import LikedVideosList from '@/components/liked/LikedVideosList'
-import LoadingState from '@/components/liked/LoadingState'
 import ErrorState from '@/components/liked/ErrorState'
 import UnauthenticatedPrompt from '@/components/UnauthenticatedPrompt'
 import { useState, useEffect } from 'react'
-
+import { VideoCardSkeleton } from '@/components/skeletons'
+import { groupHistoryByDate } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 
 export default function LikedVideosPage() {
+  const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authLoading, setAuthLoading] = useState(true)
+  const [activeMenu, setActiveMenu] = useState<string | null>(null)
 
   useEffect(() => {
     const checkAuth = () => {
@@ -22,10 +25,26 @@ export default function LikedVideosPage() {
     checkAuth()
   }, [])
 
-  const { likedVideos, loading, error, retryFetch } = useLikedVideos(isAuthenticated)
+  const { likedVideos, loading, error, retryFetch, removeLikedVideo } = useLikedVideos(isAuthenticated)
 
-  if (authLoading) {
-    return <LoadingState />
+  const handleVideoClick = (video: any) => {
+    router.push(`/watch/${video._id}`)
+  }
+
+  const handleRemoveLikedVideo = async (id: string) => {
+    await removeLikedVideo(id)
+  }
+
+  const handleToggleMenu = (id: string) => {
+    setActiveMenu(activeMenu === id ? null : id)
+  }
+
+  const handleCloseMenu = () => {
+    setActiveMenu(null)
+  }
+
+  if (authLoading || loading) {
+    return <VideoCardSkeleton variant="like" count={4} />
   }
 
   if (!isAuthenticated) {
@@ -45,19 +64,23 @@ export default function LikedVideosPage() {
     )
   }
 
+  const groupedHistory = groupHistoryByDate(likedVideos)
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
-        {loading && <LoadingState />}
-        {error && <ErrorState error={error} onRetry={retryFetch} />}
-
-        {!loading && !error && (
-          <LikedVideosHeader />
+        {error ? (
+          <ErrorState error={error} onRetry={retryFetch} />
+        ) : (
+          <>
+            <LikedVideosHeader />
+            <LikedVideosList
+              groupedHistory={groupedHistory}
+              onVideoClick={handleVideoClick}
+              onRemoveLikedVideo={handleRemoveLikedVideo}
+            />
+          </>
         )}
-        {!loading && !error && (
-        <LikedVideosList likedVideos={likedVideos} />
-        )}
-
       </div>
     </div>
   )

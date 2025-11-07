@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import api, { publicApi } from '@/lib/api'
+import api, { publicApi } from '@/lib/api/api'
 
 interface ChannelUser {
   _id: string

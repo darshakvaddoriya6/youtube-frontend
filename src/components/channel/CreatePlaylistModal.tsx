@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, Image as ImageIcon } from 'lucide-react'
-import api from '@/lib/api'
+import api from '@/lib/api/api'
 import toast from 'react-hot-toast'
 
 interface CreatePlaylistModalProps {

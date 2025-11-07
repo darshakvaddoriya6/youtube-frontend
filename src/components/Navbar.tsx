@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Search, Menu, Plus, LogOut, Settings, User, X } from 'lucide-react'
 import UploadVideoModal from './UploadVideoModal'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { publicApi } from '@/lib/api'
+import { publicApi } from '@/lib/api/api'
 import NavbarSkeleton from './skeletons/NavbarSkeleton'
 
 const Navbar = () => {

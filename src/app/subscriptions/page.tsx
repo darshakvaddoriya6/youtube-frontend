@@ -1,25 +1,22 @@
 'use client'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import UnauthenticatedPrompt from '@/components/UnauthenticatedPrompt'
 import SubscriptionsList from '@/components/subscriptions/SubscriptionsList'
-import LoadingState from '@/components/subscriptions/LoadingState'
 import ErrorState from '@/components/subscriptions/ErrorState'
 import { useSubscriptions } from '@/hooks/useSubscriptions'
+import VideoCardSkeleton from '@/components/skeletons/VideoCardSkeleton'
+import { useAuth } from '@/contexts/AuthContext'
 
 const Subscriptions = () => {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [authLoading, setAuthLoading] = useState(true)
+  const { loading: authLoading } = useAuth()
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('accessToken')
-      setIsAuthenticated(!!token)
-      setAuthLoading(false)
-    }
-
-    checkAuth()
+    const token = localStorage.getItem('accessToken')
+    setIsAuthenticated(!!token)
   }, [])
 
   const {
@@ -27,31 +24,36 @@ const Subscriptions = () => {
     loading,
     error,
     subscribingChannels,
-    handleSubscriptionToggle
+    handleSubscriptionToggle,
+    fetchMore,
+    hasMore
   } = useSubscriptions(isAuthenticated)
 
   const handleChannelClick = (username: string) => {
     router.push(`/channel/${username}`)
   }
 
-  // Show loading while checking authentication
-  if (authLoading) {
-    return <LoadingState />
+
+
+  // Show loading state while checking auth or initial data loading
+  if (authLoading || (isAuthenticated && loading && subscriptions.length === 0)) {
+    return (
+      <div className="min-h-screen pb-24 flex items-center justify-center">
+        <VideoCardSkeleton variant="subscriptions" />
+      </div>
+    )
   }
 
-  // Show login prompt if not authenticated
   if (!isAuthenticated) {
     return (
       <UnauthenticatedPrompt
         pageTitle="Subscriptions"
-        pageDescription="Keep up with your favorite channels and creators by signing in to your account."
+        pageDescription="Keep up with your favorite channels and creators by signing in."
         features={[
           'Get notified about new videos',
           'Access your personalized feed',
           'Manage your subscriptions',
           'Continue watching where you left off',
-          'Save videos to watch later',
-          'Like and comment on videos'
         ]}
       />
     )
@@ -59,14 +61,14 @@ const Subscriptions = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="px-3 py-4 lg:p-6 max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-lg lg:text-2xl font-bold mb-3 lg:mb-6 text-gray-900 px-1">
           Subscriptions
         </h1>
 
-        {loading && <LoadingState />}
-        {error && <ErrorState error={error} />}
-        {!loading && !error && (
+        {error ? (
+          <ErrorState error={error} />
+        ) : (
           <SubscriptionsList
             subscriptions={subscriptions}
             onChannelClick={handleChannelClick}

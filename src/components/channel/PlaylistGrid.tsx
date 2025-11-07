@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MoreVertical, Trash2, Cog, Bookmark, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { playlistApi } from "@/lib/api"
+import { playlistApi } from "@/lib/api/api"
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, Upload, Image } from 'lucide-react'
-import api from '@/lib/api'
+import api from '@/lib/api/api'
 
 interface UploadVideoModalProps {
   isOpen: boolean

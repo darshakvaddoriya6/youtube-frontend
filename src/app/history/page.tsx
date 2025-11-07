@@ -4,9 +4,9 @@ import UnauthenticatedPrompt from "@/components/UnauthenticatedPrompt";
 import { groupHistoryByDate } from "@/lib/utils";
 import HistoryHeader from "@/components/history/HistoryHeader";
 import HistoryList from "@/components/history/HistoryList";
-import LoadingState from "@/components/history/LoadingState";
 import ErrorState from "@/components/history/ErrorState";
 import { useWatchHistory } from "@/hooks/useWatchHistory";
+import { VideoCardSkeleton } from '@/components/skeletons';
 
 const HistoryPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,8 +37,8 @@ const HistoryPage = () => {
     closeMenu,
   } = useWatchHistory(isAuthenticated);
 
-  if (authLoading) {
-    return <LoadingState />
+  if (authLoading || loading) {
+    return <VideoCardSkeleton variant="history" count={3} />
   }
 
   if (!isAuthenticated) {
@@ -62,30 +62,29 @@ const HistoryPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto px-3 lg:px-6 py-4 lg:py-8">
+      <div className="max-w-6xl mx-auto ">
 
-        {loading && <LoadingState />}
-        {error && <ErrorState error={error} />}
+        {error ? <ErrorState error={error} /> : (
+          <>
+            <HistoryHeader
+              historyCount={watchHistory.length}
+              onClearAll={handleClearAllHistory}
+              clearingAll={clearingAll}
+            />
 
-        {!loading && !error && (
-          <HistoryHeader
-            historyCount={watchHistory.length}
-            onClearAll={handleClearAllHistory}
-            clearingAll={clearingAll}
-          />
+            <HistoryList
+              groupedHistory={groupedHistory}
+              onVideoClick={handleVideoClick}
+              onDeleteHistory={handleDeleteHistory}
+              deletingId={deletingId}
+              activeMenu={activeMenu}
+              onToggleMenu={toggleMenu}
+              onCloseMenu={closeMenu}
+            />
+          </>
         )}
 
-        {!loading && !error && (
-          <HistoryList
-            groupedHistory={groupedHistory}
-            onVideoClick={handleVideoClick}
-            onDeleteHistory={handleDeleteHistory}
-            deletingId={deletingId}
-            activeMenu={activeMenu}
-            onToggleMenu={toggleMenu}
-            onCloseMenu={closeMenu}
-          />
-        )}
+
       </div>
     </div>
   );

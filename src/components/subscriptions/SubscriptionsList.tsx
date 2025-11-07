@@ -33,10 +33,10 @@ const SubscriptionsList = ({
 }: SubscriptionsListProps) => {
   if (subscriptions.length === 0) {
     return (
-      <div className="text-center py-12 lg:py-16 px-4">
+      <div className="text-center py-12">
         <Users className="h-16 w-16 lg:h-20 lg:w-20 mx-auto text-gray-300 mb-4" />
-        <p className="text-lg lg:text-xl font-medium text-gray-500 mb-2">No subscriptions yet</p>
-        <p className="text-sm lg:text-base text-gray-400 max-w-sm mx-auto leading-relaxed">
+        <p className="text-lg lg:text-xl font-medium text-gray-600 mb-2">No subscriptions yet</p>
+        <p className="text-sm lg:text-base text-gray-500 max-w-sm mx-auto leading-relaxed">
           Subscribe to channels to see their latest videos here
         </p>
       </div>

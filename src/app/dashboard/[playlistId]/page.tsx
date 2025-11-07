@@ -5,7 +5,7 @@ import { Video, ListVideo, Trash2, Plus, Check } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { useEffect, useState } from "react"
-import { publicApi } from "@/lib/api"
+import { publicApi } from "@/lib/api/api"
 import toast, { Toaster } from 'react-hot-toast'
 import { formatDuration as formatVideoDuration, formatViews } from "@/lib/utils"
 
